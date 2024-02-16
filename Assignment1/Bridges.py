@@ -8,6 +8,7 @@ df_bridges.head()
 df_bridges.shape
 
 
+
 #Algorithm that tries to identify the bridges that are not on a road:
 def is_bridge_on_road(bridge_row, road_row):
     # Check if bridge coordinates fall within road coordinates
