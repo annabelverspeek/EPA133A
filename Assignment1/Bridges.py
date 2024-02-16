@@ -83,9 +83,9 @@ else:
 def lat_long_around(df):
     for idx, row in df.iterrows():
         lat = row['lat']
-        long = row['long']
-        if lat > 30 and long < 80:
+        long = row['lon']
+        if lat > 27 and long < 87:
             # Swap latitude and longitude
-            row['lat'], row['long'] = long, lat
+            row['lat'], row['lon'] = long, lat
     return df  # Return the modified DataFrame
 
