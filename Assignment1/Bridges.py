@@ -80,15 +80,12 @@ if not duplicate_coordinates.empty:
 else:
     print("No duplicate coordinates found.")
 
-a1 = 0
-a2 = 0
-def lat_long_around(lat, long):
-    for lat, long in df_bridges:
+def lat_long_around(df):
+    for idx, row in df.iterrows():
+        lat = row['lat']
+        long = row['long']
         if lat > 30 and long < 80:
-            a1 = lat 
-            a2 = long
-            lat = a2 
-            long = a1 
-        else:
-            continue
+            # Swap latitude and longitude
+            row['lat'], row['long'] = long, lat
+    return df  # Return the modified DataFrame
 
