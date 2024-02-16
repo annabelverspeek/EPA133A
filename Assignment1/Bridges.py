@@ -56,22 +56,6 @@ for idx, row in df_bridges.iterrows():
 
 print("Number of commas replaced:", count_commas)
 
-# Check for reversed latitude and longitude
-reversed_coordinates = []
-for idx, row in df_bridges.iterrows():
-    lat = row['lat']
-    lon = row['lon']
-    for inner_idx, inner_row in df_bridges.iterrows():
-        if idx != inner_idx:  # Skip comparing with the same row
-            if lat == inner_row['lon'] and lon == inner_row['lat']:
-                reversed_coordinates.append((idx, inner_idx))
-                break
-
-# Output reversed coordinate pairs
-for pair in reversed_coordinates:
-    print(f"Row {pair[0]} and Row {pair[1]} have reversed latitude and longitude.")
-
-
 duplicate_coordinates = df_bridges[df_bridges.duplicated(['lat', 'lon'], keep=False)]
 
 if not duplicate_coordinates.empty:
