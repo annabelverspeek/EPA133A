@@ -79,3 +79,16 @@ if not duplicate_coordinates.empty:
     print(duplicate_coordinates)
 else:
     print("No duplicate coordinates found.")
+
+a1 = 0
+a2 = 0
+def lat_long_around(lat, long):
+    for lat, long in df_bridges:
+        if lat > 30 and long < 80:
+            a1 = lat 
+            a2 = long
+            lat = a2 
+            long = a1 
+        else:
+            continue
+
