@@ -1,3 +1,4 @@
+#importeren van functies
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,26 +17,8 @@ def plot_rd(road_name, df_roads):
     plt.grid(True)
     plt.show()
 
-#making sure the columns are rows. And that every row is a road
-for road in df_roads.itertuples(index=False):
-    road_name = road[0]
-
-    data = []
-    for i in range(1, len(road), 3):
-        if pd.isna(road[i]):
-            break
-        else:
-            lrp = (road[i], road[i + 1], road[i + 2])
-            data.append(lrp)
-
-    df_road = pd.DataFrame(data, columns=['LRP', 'LAT', 'LON'])
-
-    plot_rd(road_name, df_road)
-
-    break  # Remove this if you want to plot all roads
-
-#print(df_road.describe())
-
+#first the functions are defined that calculate the distances to LRPs, at the end these functions are called and plotted
+#this function calculates the distance between LON and LAT
 def calc_lrp_distance (df_rd_lrp):
     df_lrp_before = df_rd_lrp.shift()
 
@@ -43,19 +26,12 @@ def calc_lrp_distance (df_rd_lrp):
 
     return lrp_dist
 
-lrp_dist = calc_lrp_distance(df_road)
-print(lrp_dist)
-
+#this function finds LRPs that have a longer distance between LON and LATS than the threshold. Making the threshold way bigger/smaller, does not remove the final outliers
 def get_lrps_off_rd (lrp_dist):
     threshold = lrp_dist.quantile(0.8)*20
 
     lrp_off_rd = lrp_dist.loc[(lrp_dist > threshold) & (lrp_dist.shift(-1) > threshold)]
     return lrp_off_rd
-
-lrp_off_rd = get_lrps_off_rd(lrp_dist)
-
-print(lrp_off_rd)
-print(df_road.loc[lrp_off_rd.index])
 
 def correct_lrps_off_rd(df_road, lrp_off_rd):
     df_road.loc[lrp_off_rd.index, 'LAT'] = (df_road['LAT'].shift().loc[lrp_off_rd.index] + df_road['LAT'].shift(-1).loc[lrp_off_rd.index]) / 2
@@ -63,20 +39,7 @@ def correct_lrps_off_rd(df_road, lrp_off_rd):
 
     return df_road
 
-df_road_new = correct_lrps_off_rd(df_road, lrp_off_rd)
-lrp_changed_index = lrp_off_rd.index.tolist()
-print(lrp_changed_index)
-
-print(plot_rd(road_name, df_road))
-print(plot_rd(road_name, df_road_new))
-
-#|second round, ziet in grafiek dat er nog een outlier over is
-
-#pull back deel
-
-lrp_dist = calc_lrp_distance(df_road_new)
-print(lrp_dist.describe())
-
+#we perform a second round, to also remove consecutive outliers. In the example of N1, still one outlier remains.
 def get_lrp_off_rd_2(lrp_dist):
     threshold = lrp_dist.quantile(0.8)*20
 
@@ -84,11 +47,9 @@ def get_lrp_off_rd_2(lrp_dist):
 
     return lrp_off_rd
 
-lrp_off_rd = get_lrp_off_rd_2(lrp_dist)
-df_road_new.loc[lrp_off_rd.index]
-
 def correct_lrps_off_rd_2(df_road, lrp_off_rd):
-    for i in range(0, len(lrp_off_rd.index), 2):
+    lrp_changed_index = []
+    for i in range(0, len(lrp_off_rd.index) - 1, 2):  # Adjust range to ensure pairs of indices
         lrp_start_index = lrp_off_rd.index[i]
         lrp_end_index = lrp_off_rd.index[i+1]
         lrp_nr = lrp_end_index - lrp_start_index
@@ -105,14 +66,28 @@ def correct_lrps_off_rd_2(df_road, lrp_off_rd):
 
             lrp_changed_index.append(lrp_start_index + j)
 
-    return df_road
+    return df_road, lrp_changed_index
 
-df_road_new2 = correct_lrps_off_rd_2(df_road_new.copy(), lrp_off_rd)
-lrp_changed_index = list(set(lrp_changed_index))
 
-lrp_changed_index.sort()
+#making sure the columns are rows. And that every row is a road. The functions are performed for every road in the roads dataframe
+for road in df_roads.itertuples(index=False):
+    road_name = road[0]
 
-print(lrp_changed_index)
+    data = []
+    for i in range(1, len(road), 3):
+        if pd.isna(road[i]):
+            break
+        else:
+            lrp = (road[i], road[i + 1], road[i + 2])
+            data.append(lrp)
 
-plot_rd(road_name, df_road)
-plot_rd(road_name, df_road_new2)
+    df_road = pd.DataFrame(data, columns=['LRP', 'LAT', 'LON'])
+#the functions are called for every road so the outliers are removed
+    lrp_dist = calc_lrp_distance(df_road)
+    lrp_off_rd = get_lrps_off_rd(lrp_dist)
+    df_road_new = correct_lrps_off_rd (df_road, lrp_off_rd)
+    df_road_new2, lrp_changed_index = correct_lrps_off_rd_2 (df_road_new, lrp_off_rd)
+
+    # Plotting the corrected road
+#removing the # will run this line of code and plot all the roads --> pycharm breaks because there are too many roads to plot
+   # plot_rd(road_name, df_road_new2)
