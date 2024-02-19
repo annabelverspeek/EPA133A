@@ -89,3 +89,4 @@ def lat_long_around(df):
             row['lat'], row['lon'] = long, lat
     return df  # Return the modified DataFrame
 
+df_bridges.drop_duplicates(subset=['lat', 'lon'], keep='last', inplace=True) 
