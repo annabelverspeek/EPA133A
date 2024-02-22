@@ -110,7 +110,7 @@ for road in df_roads.itertuples(index=False):
     # lrp_start_index = list(set(lrp_changed_index))
     # lrp_changed_index.sort()
     # print(lrp_start_index)
-    new_row = ', '.join(df_road_new.astype(str).values.ravel())
+    new_row = ', '.join(df_road_new2.astype(str).values.ravel())
     new_row = new_row.split(", ")
     new_row = pd.DataFrame(new_row)
     #print(new_row)
