@@ -130,6 +130,15 @@ def lat_long_around(df):
             df.loc[idx, 'lat'], df.loc[idx, 'lon'] = long, lat
     return df  # Return the modified DataFrame
 
+def delete_duplicates(df):
+    duplicate_coordinates = df[df.duplicated(['lat', 'lon'], keep=False)]
+
+    if not duplicate_coordinates.empty:
+        for index, row in duplicate_coordinates.iterrows():
+            df.loc[index,:] = np.nan
+            print("duplicates deleted: ", row)
+    else: print("No duplicate coordinates found.")
+    return df
 
 roads_df_dict = {}
 for road in df_roads.itertuples(index=False):
@@ -148,15 +157,24 @@ for road in df_roads.itertuples(index=False):
     df_road = pd.DataFrame(data, columns=['LRP', 'LAT', 'LON'])
     roads_df_dict[road_name] = df_road
 
+
 unique_roads = df_bridges['road'].unique()
 
-
 # lat_long_around(df_bridges)
-
+# delete_duplicates(df_bridges)
+#
 # for road in unique_roads:
 #     correct_lon_lat(road,df_bridges , roads_df_dict)
 
-plot_bridges('N105', df_bridges)
+#put lon and lat in correct order to create a constant road
+df_bridges = df_bridges.sort_values(by='road')
+df_bridges = df_bridges.groupby('road').apply(lambda x: x.sort_values(by=['lat', 'lon']))
+
+df_bridges.reset_index(drop=True, inplace=True)
+
+plot_bridges('N1', df_bridges)
+
+
 # print(total_roads)
 
 
