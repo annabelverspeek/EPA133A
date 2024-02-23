@@ -6,6 +6,8 @@ import numpy as np
 file = 'BMMS_overview.xlsx'
 
 df_bridges = pd.read_excel(file)
+df_bridges['lon'] = df_bridges['lon'].astype(str).str.replace(',', '.').astype(float)
+print(df_bridges.dtypes)
 
 
 df_bridges.head()
@@ -16,36 +18,13 @@ df_bridges.shape
 dtypes = {'LRP': str, 'LAT': float, 'LON': float}
 df_roads = pd.read_csv("roads_cleaned.tsv", delimiter="\t", dtype=dtypes)
 
-#Group the DataFrame by road
-
-#
-#
-# # Assuming your data is stored in a DataFrame named 'df'
-#
-# # Get the unique road names
-#
-
-
-# Iterate over unique road names
-
-
-
-# for road_name in unique_roads:
-#     # Filter the DataFrame for the current road and select desired columns
-#     road_df = df_bridges[df_bridges['road'] == road][['LRPName', 'lat', 'lon']]
-#     # Store the DataFrame in the dictionary with the road name as key
-#     bridges_per_road_dfs[road_name] = road_df
-
-
-# print("deze df", df_bridges('N1'))
-
 
 #bridges printen:
 def plot_bridges(road_name, df_bridges):
     df_road = df_bridges[df_bridges['road'] == road_name]
     print(df_road.head())
     plt.figure(figsize=(10, 6))
-    df_road['lon'] = df_road['lon'].astype(float)
+    df_road['lon'] = df_road['lon']#.astype(float)
     df_road['lat'] = df_road['lat'].astype(float)
     plt.plot(df_road['lon'], df_road['lat'], marker='o', linestyle='-')
     plt.title(f"{road_name} Bridges")
@@ -64,18 +43,6 @@ def calc_lrp_distance (df_rd_lrp):
 
     return lrp_dist
 
-def get_lrps_off_rd (lrp_dist):
-    threshold = lrp_dist.quantile(0.8)*20
-
-    lrp_off_rd = lrp_dist.loc[(lrp_dist > threshold) & (lrp_dist.shift(-1) > threshold)]
-    return lrp_off_rd
-
-# lrp_dist = calc_lrp_distance(bridges_per_road_dfs['N1'])
-# lrp_off_rd = get_lrps_off_rd(lrp_dist)
-
-# Print LRPs that are off the road and their corresponding details
-# print('Off road LRPs:')
-# print(bridges_per_road_dfs['N1'].loc[lrp_off_rd.index])
 
 #outliers op zn plek zetten:
     #Door te vergelijken of de LRP naam ook in de Roads df voorkomt, zo ja dan neemt de brug die lon en lat over.
@@ -99,27 +66,13 @@ def correct_lon_lat(road, df_bridges, roads_df_dict):
                 corresponding_row = road_road[road_road['LRP'] == lrp_name].iloc[0]
 
             # Update the longitude and latitude values in road_bridges_df
-            #print('lat',df_bridges['lat'])
-            #print('index',index)
-            #print("df_bridges", df_bridges[index])
-            #print("row", corresponding_row)
+
                 df_bridges.loc[index, 'lat'] = corresponding_row['LAT']
                 df_bridges.loc[index, 'lon'] = corresponding_row['LON']
 
 
-
-            # df_bridges.loc[index, 'lat'] = np.nan
-            # df_bridges.loc[index, 'lon'] = np.nan
-            #print('LRP not found', lrp_name)
-
-
     return df_bridges
 
-
-# Call the function to correct lon/lat values for road 'N1'
-# for road in unique_roads:
-#     if road in road_bridges_dfs:
-#         correct_lon_lat(road_bridges_dfs[road], df_road)
 
 def lat_long_around(df):
     for idx, row in df.iterrows():
@@ -136,7 +89,7 @@ def delete_duplicates(df):
     if not duplicate_coordinates.empty:
         for index, row in duplicate_coordinates.iterrows():
             df.loc[index,:] = np.nan
-            print("duplicates deleted: ", row)
+            #print("duplicates deleted: ", row)
     else: print("No duplicate coordinates found.")
     return df
 
@@ -158,13 +111,15 @@ for road in df_roads.itertuples(index=False):
     roads_df_dict[road_name] = df_road
 
 
-unique_roads = df_bridges['road'].unique()
 
-# lat_long_around(df_bridges)
-# delete_duplicates(df_bridges)
-#
-# for road in unique_roads:
-#     correct_lon_lat(road,df_bridges , roads_df_dict)
+
+lat_long_around(df_bridges)
+
+delete_duplicates(df_bridges)
+
+unique_roads = df_bridges['road'].unique()
+for road in unique_roads:
+    correct_lon_lat(road,df_bridges , roads_df_dict)
 
 #put lon and lat in correct order to create a constant road
 df_bridges = df_bridges.sort_values(by='road')
@@ -174,8 +129,10 @@ df_bridges.reset_index(drop=True, inplace=True)
 
 plot_bridges('N1', df_bridges)
 
+print(df_bridges.head())
+# df_bridges['LAT'] = df_bridges['LAT'].astype(float)
+# # df_bridges['LON'] = df_bridges['LON'].astype(float)
+print('second', df_bridges.dtypes)
 
-# print(total_roads)
 
-
-#Funtie als er nog outliers over zijn: Gemiddelde nemen van bridge ervoor en bridge erna??
+df_bridges.to_excel('bridges_cleaned.xlsx', index=False)

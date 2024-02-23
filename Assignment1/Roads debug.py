@@ -6,6 +6,10 @@ import numpy as np
 #reading the excel file
 dtypes = {'LRP': str, 'LAT': float, 'LON': float}
 df_roads = pd.read_csv("_roads copy.tsv", delimiter="\t", dtype=dtypes)
+print(df_roads.dtypes)
+df_roads_new = df_roads.copy()
+# df_roads_new.set_index('road', inplace=True)
+# df_roads.set_index('road', inplace=True)
 
 #function to plot the roads
 def plot_rd(road_name, df_roads):
@@ -16,6 +20,15 @@ def plot_rd(road_name, df_roads):
     plt.ylabel('Latitude')
     plt.grid(True)
     plt.show()
+
+def lat_long_around(df):
+    for idx, row in df.iterrows():
+        lat = row['lat']
+        long = row['lon']
+        if lat > 27 and long < 87:
+            # Swap latitude and longitude
+            row['lat'], row['lon'] = long, lat
+    return df  # Return the modified DataFrame
 
 #first the functions are defined that calculate the distances to LRPs, at the end these functions are called and plotted
 #this function calculates the distance between LON and LAT
@@ -66,28 +79,64 @@ def correct_lrps_off_rd_2(df_road, lrp_off_rd):
 
             lrp_changed_index.append(lrp_start_index + j)
 
-    return df_road, lrp_changed_index
+    return df_road
 
+road_data_list = []
 
 #making sure the columns are rows. And that every row is a road. The functions are performed for every road in the roads dataframe
 for road in df_roads.itertuples(index=False):
     road_name = road[0]
+    #print(road_name)
 
     data = []
     for i in range(1, len(road), 3):
+        lrp = [road[i], road[i + 1], road[i + 2]]
+        # Assuming pd is already imported
         if pd.isna(road[i]):
             break
         else:
-            lrp = (road[i], road[i + 1], road[i + 2])
             data.append(lrp)
 
     df_road = pd.DataFrame(data, columns=['LRP', 'LAT', 'LON'])
+    df_road['LAT'] = df_road['LAT'].astype(float)
+    df_road['LON'] = df_road['LON'].astype(float)
+    #print(df_road)
+    #print(df_road)
+    # for col in ['LAT', 'LON']:
+    #     df_road[col] = pd.to_numeric(df_road[col], errors='coerce').fillna(0)
 #the functions are called for every road so the outliers are removed
+
     lrp_dist = calc_lrp_distance(df_road)
     lrp_off_rd = get_lrps_off_rd(lrp_dist)
     df_road_new = correct_lrps_off_rd (df_road, lrp_off_rd)
-    df_road_new2, lrp_changed_index = correct_lrps_off_rd_2 (df_road_new, lrp_off_rd)
+    df_road_new2 = correct_lrps_off_rd_2 (df_road_new, lrp_off_rd)
+    # lrp_start_index = list(set(lrp_chdf_road_new2anged_index))
+    # lrp_changed_index.sort()
+    # print(lrp_start_index)
+    new_row = ', '.join(df_road_new2.astype(str).values.ravel())
+    new_row = new_row.split(", ")
+    new_row = pd.DataFrame(new_row)
+    #print(new_row)
+    df_roads_new.iloc[1,len(new_row)] = new_row
+
+print(df_roads_new.head())
+
 
     # Plotting the corrected road
 #removing the # will run this line of code and plot all the roads --> pycharm breaks because there are too many roads to plot
-   # plot_rd(road_name, df_road_new2)
+    #plot_rd(road_name, df_road_new2)
+
+#print(df_road_new2)
+import pandas as pd
+
+# Create a new row with NaN values to match the original df
+new_row = pd.DataFrame([pd.Series([None] * len(df_roads_new.columns))], columns=df_roads_new.columns)
+
+df_roads_new = pd.concat([new_row, df_roads_new], ignore_index=True)
+
+# Display the DataFrame with the new row at the top
+
+print(df_roads_new.dtypes)
+
+
+df_roads_new.to_csv('roads_cleaned.tsv', sep='\t', index=False)
