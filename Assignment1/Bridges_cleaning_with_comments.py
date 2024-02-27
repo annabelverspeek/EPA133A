@@ -92,3 +92,11 @@ for road in unique_roads: # Iterate through all the unique roads in df_bridges.
 
 plot_bridges('N1', df_bridges) # Plot a particular bridge to see how the latitude and longitude of bridges are changed and the outliers are fixed.
 
+df_bridges = df_bridges.sort_values(by='road')
+df_bridges = df_bridges.groupby('road').apply(lambda x: x.sort_values(by=['lat', 'lon']))
+
+df_bridges.reset_index(drop=True, inplace=True)
+
+df_bridges.to_excel('bridges_cleaned.xlsx', index=False)
+
+#test test
