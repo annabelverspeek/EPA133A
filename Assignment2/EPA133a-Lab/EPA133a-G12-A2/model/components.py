@@ -76,7 +76,7 @@ class Bridge(Infra):
 
         self.calculate_delay_time()
 
-    def calculate_delay_time(self):
+    def get_delay_time(self):
         if not self.broken:
             self.delay_time = 0
         else:
@@ -88,13 +88,30 @@ class Bridge(Infra):
                 self.delay_time = random.uniform(15, 60)
             else:
                 self.delay_time = random.uniform(10, 20)
+        #return self.delay_time
 
-    def get_delay_time(self):
-        return self.delay_time
+
+    # def get_delay_time(self):
+    #     return self.delay_time
+
 
     def break_bridge(self):
-        self.broken = True
-        self.calculate_delay_time()
+        if self.condition == 'A' and random.random() < A:
+            self.broken = True
+            self.get_delay_time()
+
+        if self.condition == 'B' and random.random() < B:
+            self.broken = True
+            self.get_delay_time()
+
+        if self.condition == 'C' and random.random() < C:
+            self.broken = True
+            self.get_delay_time()
+
+        if self.condition == 'D' and random.random() < D:
+            self.broken = True
+            self.get_delay_time()
+        return self.broken, self.get_delay_time()
 
 
 # ---------------------------------------------------------------

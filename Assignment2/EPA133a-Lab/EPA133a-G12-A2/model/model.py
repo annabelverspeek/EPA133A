@@ -55,7 +55,7 @@ class BangladeshModel(Model):
 
     step_time = 1
 
-    def __init__(self, seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
+    def __init__(self, scenario, seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
 
         self.schedule = BaseScheduler(self)
         self.running = True
@@ -63,8 +63,53 @@ class BangladeshModel(Model):
         self.space = None
         self.sources = []
         self.sinks = []
+        self.initialize_scenario(scenario)
 
         self.generate_model()
+
+
+    def initialize_scenario(self, scenario):
+        if scenario == 1:
+            A == 0
+            B == 0
+            C == 0
+            D == 0.05
+        if scenario == 2:
+            scenario['Cat A%'] == 0
+            scenario['Cat B%'] == 0
+            scenario['Cat C%'] == 0
+            scenario['Cat D%'] == 0.1
+        if scenario == 3:
+            scenario['Cat A%'] == 0
+            scenario['Cat B%'] == 0
+            scenario['Cat C%'] == 0.05
+            scenario['Cat D%'] == 0.1
+        if scenario == 4:
+            scenario['Cat A%'] == 0
+            scenario['Cat B%'] == 0
+            scenario['Cat C%'] == 0.1
+            scenario['Cat D%'] == 0.2
+        if scenario == 5:
+            scenario['Cat A%'] == 0
+            scenario['Cat B%'] == 0.05
+            scenario['Cat C%'] == 0.1
+            scenario['Cat D%'] == 0.2
+        if scenario == 6:
+            scenario['Cat A%'] == 0
+            scenario['Cat B%'] == 0.1
+            scenario['Cat C%'] == 0.2
+            scenario['Cat D%'] == 0.4
+        if scenario == 7:
+            scenario['Cat A%'] == 0.05
+            scenario['Cat B%'] == 0.1
+            scenario['Cat C%'] == 0.2
+            scenario['Cat D%'] == 0.4
+
+        if scenario == 8:
+            scenario['Cat A%'] == 0.1
+            scenario['Cat B%'] == 0.2
+            scenario['Cat C%'] == 0.4
+            scenario['Cat D%'] == 0.8
 
     def generate_model(self):
         """

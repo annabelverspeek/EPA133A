@@ -15,7 +15,7 @@ run_length = 1000
 
 seed = 1234567
 
-sim_model = BangladeshModel(seed=seed)
+sim_model = BangladeshModel(1, seed=seed)
 
 # Check if the seed is set
 print("SEED " + str(sim_model._seed))
