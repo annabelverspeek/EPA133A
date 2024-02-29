@@ -1,6 +1,10 @@
 from mesa import Agent
 from enum import Enum
+import pandas as pd
 
+file = 'transformed_data_N1.csv'
+df_N1 = pd.read_csv(file)
+#print(df_N1.head())
 
 # ---------------------------------------------------------------
 class Infra(Agent):
@@ -49,20 +53,48 @@ class Bridge(Infra):
     ...
 
     """
+    #
+    # def __init__(self, unique_id, model, length=0,
+    #              name='Unknown', road_name='Unknown', condition='Unknown'):
+    #     super().__init__(unique_id, model, length, name, road_name)
+    #
+    #     self.condition = condition
+    #
+    #     # TODO
+    #     self.delay_time = self.random.randrange(0, 10)
+    #     # print(self.delay_time)
+    #
+    # # TODO
+    # def get_delay_time(self):
+    #     return self.delay_time
 
-    def __init__(self, unique_id, model, length=0,
-                 name='Unknown', road_name='Unknown', condition='Unknown'):
+    def __init__(self, unique_id, model, length=0, name='Unknown', road_name='Unknown', condition='Unknown'):
         super().__init__(unique_id, model, length, name, road_name)
 
         self.condition = condition
+        self.broken = False
 
-        # TODO
-        self.delay_time = self.random.randrange(0, 10)
-        # print(self.delay_time)
+        self.calculate_delay_time()
 
-    # TODO
+    def calculate_delay_time(self):
+        if not self.broken:
+            self.delay_time = 0
+        else:
+            if self.length > 200:
+                self.delay_time = random.triangular(1, 2, 4) * 60  # Convert hours to minutes
+            elif 50 <= self.length <= 200:
+                self.delay_time = random.uniform(45, 90)
+            elif 10 <= self.length < 50:
+                self.delay_time = random.uniform(15, 60)
+            else:
+                self.delay_time = random.uniform(10, 20)
+
     def get_delay_time(self):
         return self.delay_time
+
+    def break_bridge(self):
+        self.broken = True
+        self.calculate_delay_time()
 
 
 # ---------------------------------------------------------------
