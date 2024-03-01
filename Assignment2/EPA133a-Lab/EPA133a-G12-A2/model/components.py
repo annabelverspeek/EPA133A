@@ -88,7 +88,7 @@ class Bridge(Infra):
                 self.delay_time = random.uniform(15, 60)
             else:
                 self.delay_time = random.uniform(10, 20)
-        #return self.delay_time
+        return self.delay_time
 
 
     # def get_delay_time(self):
@@ -283,8 +283,8 @@ class Vehicle(Agent):
         Vehicle waits or drives at each step
         """
         if self.state == Vehicle.State.WAIT:
-            self.waiting_time = max(self.waiting_time - 1, 0)
-            if self.waiting_time == 0:
+            self.waiting_time = max(float(self.waiting_time) - 1, 0)
+            if float(self.waiting_time) == 0:
                 self.waited_at = self.location
                 self.state = Vehicle.State.DRIVE
 
@@ -327,7 +327,7 @@ class Vehicle(Agent):
             return
         elif isinstance(next_infra, Bridge):
             self.waiting_time = next_infra.get_delay_time()
-            if self.waiting_time > 0:
+            if float(self.waiting_time) > 0:
                 # arrive at the bridge and wait
                 self.arrive_at_next(next_infra, 0)
                 self.state = Vehicle.State.WAIT
