@@ -74,7 +74,7 @@ class Bridge(Infra):
         self.condition = condition
         self.broken = False
 
-        self.calculate_delay_time()
+        self.get_delay_time()
 
     def get_delay_time(self):
         if not self.broken:
@@ -96,19 +96,20 @@ class Bridge(Infra):
 
 
     def break_bridge(self):
-        if self.condition == 'A' and random.random() < A:
+        model.initialize_scenario(1)
+        if self.condition == 'A' and random.random() < self.cat_a_percent:
             self.broken = True
             self.get_delay_time()
 
-        if self.condition == 'B' and random.random() < B:
+        if self.condition == 'B' and random.random() < self.cat_b_percent:
             self.broken = True
             self.get_delay_time()
 
-        if self.condition == 'C' and random.random() < C:
+        if self.condition == 'C' and random.random() < self.cat_c_percent:
             self.broken = True
             self.get_delay_time()
 
-        if self.condition == 'D' and random.random() < D:
+        if self.condition == 'D' and random.random() < self.cat_d_percent:
             self.broken = True
             self.get_delay_time()
         return self.broken, self.get_delay_time()
