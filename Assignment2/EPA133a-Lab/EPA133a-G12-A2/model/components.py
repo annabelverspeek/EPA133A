@@ -6,6 +6,8 @@ file = 'transformed_data_N1.csv'
 df_N1 = pd.read_csv(file)
 #print(df_N1.head())
 
+# Initialize vehicle_durations list
+vehicle_durations = []
 # ---------------------------------------------------------------
 class Infra(Agent):
     """
@@ -96,7 +98,7 @@ class Bridge(Infra):
 
 
     def break_bridge(self):
-        model.initialize_scenario(1)
+        model.initialize_scenario(8)
         if self.condition == 'A' and random.random() < self.cat_a_percent:
             self.broken = True
             self.get_delay_time()
@@ -180,6 +182,7 @@ class Source(Infra):
             agent = Vehicle('Truck' + str(Source.truck_counter), self.model, self)
             if agent:
                 self.model.schedule.add(agent)
+
                 agent.set_path()
                 Source.truck_counter += 1
                 self.vehicle_count += 1
@@ -246,6 +249,8 @@ class Vehicle(Agent):
     # One tick represents 1 minute
     step_time = 1
 
+    vehicle_durations  = []
+
     class State(Enum):
         DRIVE = 1
         WAIT = 2
@@ -259,12 +264,14 @@ class Vehicle(Agent):
         self.location_offset = location_offset
         self.pos = generated_by.pos
         self.path_ids = path_ids
+
         # default values
         self.state = Vehicle.State.DRIVE
         self.location_index = 0
         self.waiting_time = 0
         self.waited_at = None
         self.removed_at_step = None
+        self.time_in_model = None
 
     def __str__(self):
         return "Vehicle" + str(self.unique_id) + \
@@ -321,8 +328,12 @@ class Vehicle(Agent):
 
         if isinstance(next_infra, Sink):
             # arrive at the sink
+            print("Vehicle {} arrived at the sink".format(self.unique_id))  # Debug print statement
             self.arrive_at_next(next_infra, 0)
             self.removed_at_step = self.model.schedule.steps
+            self.time_in_model = self.removed_at_step - self.generated_at_step
+            print('I was in the model for:', self.time_in_model)
+            Vehicle.vehicle_durations.append({'Unique_ID': self.unique_id, 'Time_In_Model': self.time_in_model})
             self.location.remove(self)
             return
         elif isinstance(next_infra, Bridge):
@@ -349,6 +360,14 @@ class Vehicle(Agent):
         self.location = next_infra
         self.location_offset = location_offset
         self.location.vehicle_count += 1
+
+    def create_dataframe():
+        """
+        Create a DataFrame from the vehicle_durations list.
+        """
+        df = pd.DataFrame(Vehicle.vehicle_durations)
+        return df
+
 
 # EOF -----------------------------------------------------------
 

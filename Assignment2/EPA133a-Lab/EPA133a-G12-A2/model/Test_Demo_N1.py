@@ -17,11 +17,6 @@ data = []
 id_counter = 1000000
 link_chainage = 0
 
-#append source:
-data.append({'road': road, 'id': id_counter, 'model_type': 'source', 'name': 'source', 'lat': lat, 'lon': lon, 'length': np.nan, 'condition': np.nan})
-
-
-
 bridge_counter = 1  # Initialize bridge counter
 link_chainage = 0    # Initialize link chainage
 
@@ -36,11 +31,17 @@ for index, row in df.iterrows():
     chainage_str = str(row['chainage'])  # Convert chainage to string
     chainage = float(chainage_str.replace(',', '.'))  # Replace commas and convert to float
 
+    # append source:
+    if index == 0:
+        data.append({'road': road, 'id': id_counter, 'model_type': 'source', 'name': 'source', 'lat': lat, 'lon': lon, 'length': np.nan, 'condition': np.nan})
+
     # Append link
-    link_length = chainage - link_chainage  # Calculate the length of the link
-    data.append({'road': road, 'id': id_counter, 'model_type': 'link', 'name': f'link {index}', 'lat': link_chainage, 'lon': link_chainage, 'length': link_length, 'condition': np.nan})
-    id_counter += 1
-    link_chainage = chainage  # Update link chainage
+    if index>0:
+        link_length = chainage - link_chainage  # Calculate the length of the link
+        print(chainage, link_chainage)
+        data.append({'road': road, 'id': id_counter, 'model_type': 'link', 'name': f'link {index}', 'lat': link_chainage, 'lon': link_chainage, 'length': link_length, 'condition': np.nan})
+        id_counter += 1
+        link_chainage = chainage  # Update link chainage
 
     # Append bridge
     if row['type'] == 'PC Girder Bridge' or row['type'] == 'Box Culvert' or row['type'] == 'PC Box' or row['type'] == 'RCC Girder Bridge' or row['type'] == 'Slab Culvert' or row['type'] == 'Steel Beam & RCC Slab' or row['type'] == 'Arch Masonry' or row['type'] == 'RCC Bridge' or row['type'] == 'Truss With Timber Deck':  # Check if it's a bridge

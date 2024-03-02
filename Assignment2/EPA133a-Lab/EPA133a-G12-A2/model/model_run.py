@@ -1,4 +1,6 @@
 from model import BangladeshModel
+from components import Vehicle
+import pandas as pd
 
 """
     Run simulation
@@ -20,6 +22,10 @@ sim_model = BangladeshModel(seed=seed)
 # Check if the seed is set
 print("SEED " + str(sim_model._seed))
 
+
 # One run with given steps
 for i in range(run_length):
     sim_model.step()
+
+df = Vehicle.create_dataframe()
+print(df)
