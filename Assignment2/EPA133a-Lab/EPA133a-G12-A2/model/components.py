@@ -73,16 +73,18 @@ class Bridge(Infra):
     def __init__(self, unique_id, model, length=0, name='Unknown', road_name='Unknown', condition='Unknown'):
         super().__init__(unique_id, model, length, name, road_name)
 
-        self.condition = condition
+
         self.broken = False
 
         self.get_delay_time()
 
-    def get_delay_time(self):
+
+    def get_delay_time(self): #toegevoegd, om delay time te berekenen
+        self.break_bridge() #De bridges door het ingevoerde scenario --> zie def break_bridge()
         if not self.broken:
             self.delay_time = 0
         else:
-            if self.length > 200:
+            if self.length > 200: #Length wordt bepaald in model.py dus kunnen we gwn gebruiken
                 self.delay_time = random.triangular(1, 2, 4) * 60  # Convert hours to minutes
             elif 50 <= self.length <= 200:
                 self.delay_time = random.uniform(45, 90)
@@ -92,29 +94,34 @@ class Bridge(Infra):
                 self.delay_time = random.uniform(10, 20)
         return self.delay_time
 
+    def get_condition(self): #condition wordt nog niet bepaald in model.py, dus zelf invoeren door deze functie
+        for index, row in df_N1.iterrows():
+            if self.unique_id == row['id']:
+                self.condition = row['condition']
+        return self.condition
 
     # def get_delay_time(self):
     #     return self.delay_time
 
 
-    def break_bridge(self):
-        model.initialize_scenario(8)
-        if self.condition == 'A' and random.random() < self.cat_a_percent:
+    def break_bridge(self): #Deze functie wordt gebruikt om de delay time te bepalen voor een brug.
+        condition = self.get_condition()
+        if condition == 'A' and random.random() < self.model.cat_a_percent: #self.model.cat_a_percent wordt bepaald in model.py met de functie: def initialize_scenario(self, scenario): geeft voor elke categorie aan wat de kans is dat de brug breekt.
             self.broken = True
             self.get_delay_time()
 
-        if self.condition == 'B' and random.random() < self.cat_b_percent:
+        if condition == 'B' and random.random() < self.model.cat_b_percent:
             self.broken = True
             self.get_delay_time()
 
-        if self.condition == 'C' and random.random() < self.cat_c_percent:
+        if condition == 'C' and random.random() < self.model.cat_c_percent:
             self.broken = True
             self.get_delay_time()
 
-        if self.condition == 'D' and random.random() < self.cat_d_percent:
+        if condition == 'D' and random.random() < self.model.cat_d_percent:
             self.broken = True
             self.get_delay_time()
-        return self.broken, self.get_delay_time()
+        return self.broken #, self.get_delay_time()
 
 
 # ---------------------------------------------------------------
@@ -123,7 +130,7 @@ class Link(Infra):
 
 
 # ---------------------------------------------------------------
-class Sink(Infra):
+class Sink(Infra): #Hier is niks aan veranderd
     """
     Sink removes vehicles
 
@@ -201,7 +208,7 @@ class SourceSink(Source, Sink):
 
 
 # ---------------------------------------------------------------
-class Vehicle(Agent):
+class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de vehicle_duration gemaakt.
     """
 
     Attributes
@@ -332,7 +339,7 @@ class Vehicle(Agent):
             self.arrive_at_next(next_infra, 0)
             self.removed_at_step = self.model.schedule.steps
             self.time_in_model = self.removed_at_step - self.generated_at_step
-            print('I was in the model for:', self.time_in_model)
+            print('I was in the model for:', self.time_in_model) #Om te testen
             Vehicle.vehicle_durations.append({'Unique_ID': self.unique_id, 'Time_In_Model': self.time_in_model})
             self.location.remove(self)
             return
@@ -361,7 +368,7 @@ class Vehicle(Agent):
         self.location_offset = location_offset
         self.location.vehicle_count += 1
 
-    def create_dataframe():
+    def create_dataframe(): #Dit maakt een dataframe om te kunnen terug kijken wat de tijd is dat een bepaalde vehicle in het model is geweest
         """
         Create a DataFrame from the vehicle_durations list.
         """

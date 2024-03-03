@@ -27,5 +27,5 @@ print("SEED " + str(sim_model._seed))
 for i in range(run_length):
     sim_model.step()
 
-df = Vehicle.create_dataframe()
+df = Vehicle.create_dataframe() #dataframe functie wordt aangeroepen, zodat df wordt gemaakt van de vehicle_duration
 print(df)

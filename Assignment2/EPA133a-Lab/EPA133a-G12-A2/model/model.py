@@ -87,6 +87,7 @@ class BangladeshModel(Model):
             self.cat_a_percent, self.cat_b_percent, self.cat_c_percent, self.cat_d_percent = scenario_map[scenario]
         else:
             raise ValueError("Invalid scenario number")
+        return self.cat_a_percent, self.cat_b_percent, self.cat_c_percent, self.cat_d_percent
 
     def generate_model(self):
         """
@@ -95,8 +96,8 @@ class BangladeshModel(Model):
         Warning: the labels are the same as the csv column labels
         """
 
-        #df = pd.read_csv('../data/demo-1.csv')
-        df = pd.read_csv('transformed_data_N1.csv')
+        df = pd.read_csv('../data/demo-1.csv')
+        #df = pd.read_csv('transformed_data_N1.csv')
 
         # a list of names of roads to be generated
         roads = ['N1']
@@ -179,6 +180,7 @@ class BangladeshModel(Model):
             sink = self.random.choice(self.sinks)
             if sink is not source:
                 break
+        #print('The route is: ', self.path_ids_dict[source, sink])
         return self.path_ids_dict[source, sink]
 
     def step(self):
