@@ -350,7 +350,7 @@ class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de v
             self.time_in_model = self.removed_at_step - self.generated_at_step
             #print('I was in the model for:', self.time_in_model) #Om te testen
             Vehicle.vehicle_durations.append({'Unique_ID': self.unique_id, 'Time_In_Model': self.time_in_model})
-            #print(vehicle_durations)
+            print(vehicle_durations)
             self.location.remove(self)
             return
         elif isinstance(next_infra, Bridge):
