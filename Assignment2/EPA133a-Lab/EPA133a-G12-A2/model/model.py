@@ -55,7 +55,7 @@ class BangladeshModel(Model):
 
     step_time = 1
 
-    def __init__(self, seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
+    def __init__(self, seed=None, x_max=500, y_max=500, x_min=0, y_min=0, scenario = 0):
 
         self.schedule = BaseScheduler(self)
         self.running = True
@@ -67,18 +67,21 @@ class BangladeshModel(Model):
         self.cat_b_percent = None
         self.cat_c_percent = None
         self.cat_d_percent = None
+        self.scenario = scenario
+
+        self.initialize_scenario(self.scenario)
 
         self.generate_model()
 
-
     def initialize_scenario(self, scenario):
         scenario_map = {
-            1: (0, 0, 0, 0.05),
-            2: (0, 0, 0, 0.1),
-            3: (0, 0, 0.05, 0.1),
-            4: (0, 0, 0.1, 0.2),
-            5: (0, 0.05, 0.1, 0.2),
-            6: (0, 0.1, 0.2, 0.4),
+            0: (0.0, 0.0, 0.0, 0.0),
+            1: (0.0, 0.0, 0.0, 0.05),
+            2: (0.0, 0.0, 0.0, 0.1),
+            3: (0.0, 0.0, 0.05, 0.1),
+            4: (0.0, 0.0, 0.1, 0.2),
+            5: (0.0, 0.05, 0.1, 0.2),
+            6: (0.0, 0.1, 0.2, 0.4),
             7: (0.05, 0.1, 0.2, 0.4),
             8: (0.1, 0.2, 0.4, 0.8)
         }
@@ -87,6 +90,7 @@ class BangladeshModel(Model):
             self.cat_a_percent, self.cat_b_percent, self.cat_c_percent, self.cat_d_percent = scenario_map[scenario]
         else:
             raise ValueError("Invalid scenario number")
+
         return self.cat_a_percent, self.cat_b_percent, self.cat_c_percent, self.cat_d_percent
 
     def generate_model(self):

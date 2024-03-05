@@ -1,13 +1,19 @@
 from mesa import Agent
 from enum import Enum
 import pandas as pd
+import random
 
 file = 'transformed_data_N1.csv'
 df_N1 = pd.read_csv(file)
 #print(df_N1.head())
 
-# Initialize vehicle_durations list
+# Initialize vehicle_durations list and the vehicle delay list
 vehicle_durations = []
+vehicle_delay = []
+# total_delay_time = 0
+# for i in Vehicle.vehicle_delay:
+#     total_delay_time += i
+# return total_delay_time
 # ---------------------------------------------------------------
 class Infra(Agent):
     """
@@ -148,7 +154,7 @@ class Sink(Infra): #Hier is niks aan veranderd
     def remove(self, vehicle):
         self.model.schedule.remove(vehicle)
         self.vehicle_removed_toggle = not self.vehicle_removed_toggle
-        print(str(self) + ' REMOVE ' + str(vehicle))
+        #print(str(self) + ' REMOVE ' + str(vehicle))
 
 
 # ---------------------------------------------------------------
@@ -259,6 +265,7 @@ class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de v
     step_time = 1
 
     vehicle_durations  = []
+    vehicle_delay = []
 
     class State(Enum):
         DRIVE = 1
@@ -337,12 +344,13 @@ class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de v
 
         if isinstance(next_infra, Sink):
             # arrive at the sink
-            print("Vehicle {} arrived at the sink".format(self.unique_id))  # Debug print statement
+            #print("Vehicle {} arrived at the sink".format(self.unique_id))  # Debug print statement
             self.arrive_at_next(next_infra, 0)
             self.removed_at_step = self.model.schedule.steps
             self.time_in_model = self.removed_at_step - self.generated_at_step
-            print('I was in the model for:', self.time_in_model) #Om te testen
+            #print('I was in the model for:', self.time_in_model) #Om te testen
             Vehicle.vehicle_durations.append({'Unique_ID': self.unique_id, 'Time_In_Model': self.time_in_model})
+            #print(vehicle_durations)
             self.location.remove(self)
             return
         elif isinstance(next_infra, Bridge):
@@ -351,8 +359,10 @@ class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de v
                 # arrive at the bridge and wait
                 self.arrive_at_next(next_infra, 0)
                 self.state = Vehicle.State.WAIT
+                #Vehicle.vehicle_delay.append({'Unique_ID': self.unique_id, 'Delay_In_Model': self.waiting_time})
                 return
             # else, continue driving
+
 
         if next_infra.length > distance:
             # stay on this object:
@@ -374,7 +384,7 @@ class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de v
         """
         Create a DataFrame from the vehicle_durations list.
         """
-        df = pd.DataFrame(Vehicle.vehicle_durations)
+        df = pd.DataFrame(Vehicle.vehicle_durations) #total_delay_time)
         return df
 
 
