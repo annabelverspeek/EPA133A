@@ -94,6 +94,8 @@ class Bridge(Infra):
                 self.delay_time = random.uniform(10, 20)
         return self.delay_time
 
+    #?
+
     def get_condition(self): #condition wordt nog niet bepaald in model.py, dus zelf invoeren door deze functie
         for index, row in df_N1.iterrows():
             if self.unique_id == row['id']:
