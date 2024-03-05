@@ -14,6 +14,14 @@ df_roads = df_roads[['road','name','lat','lon']]
 df_bridge = df_bridge[df_bridge['road'] == 'N1']
 df_roads = df_roads[df_roads['road'] == 'N1']
 
+#removing double values for the bridges. Same latitudes and longitudes measured twice. Values with shortest length remain.
+df_bridge = df_bridge.sort_values('length')
+df_bridge = df_bridge.drop_duplicates(subset=['lat', 'lon'], keep = 'last')
+df_bridge = df_bridge[['road','name','lat','lon','length', 'condition','chainage','type']]
+df_bridge = df_bridge.sort_values('chainage')
+
+#print(df_bridge)
+
 data = []
 
 # Initializing the variables
@@ -44,7 +52,7 @@ for index, row in df_bridge.iterrows():
     # Append link
     if index>0:
         link_length = chainage - link_chainage  # Calculate the length of the link
-        print(chainage, link_chainage)
+        #print(chainage, link_chainage)
         data.append({'road': road, 'id': id_counter, 'model_type': 'link', 'name': f'link {index}', 'lat': link_chainage, 'lon': link_chainage, 'length': link_length, 'condition': np.nan})
         id_counter += 1
         link_chainage = chainage  # Update link chainage
@@ -72,5 +80,4 @@ new_df_bridge = pd.DataFrame(data)
 
 csv_file_path_N1 = 'transformed_data_N1.csv'
 new_df_bridge.to_csv(csv_file_path_N1, index=False)
-
 print(f"CSV file '{csv_file_path_N1}' has been created successfully.")
