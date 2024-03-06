@@ -35,7 +35,7 @@ link_chainage = 0    # Initialize link chainage
 #df_roads.loc[len(df_roads)-1, "model_type"] = "sink"
 
 # append source. As source the beginning of the road in Chittagong has been defined with specified latitudes and longitudes:
-data.append({'road': 'N1', 'id': id_counter, 'model_type': 'source', 'name': 'source', 'lat': 23.7060278, 'lon': 90.443333, 'length': np.nan, 'condition': np.nan})
+data.append({'road': 'N1', 'id': id_counter, 'model_type': 'source', 'name': 'source', 'lat': 23.7060278, 'lon': 90.443333, 'length': 0, 'condition': np.nan})
 id_counter += 1 #Otherwise similar id for the source and the first bridge!
 
 for index, row in df_bridge.iterrows():
@@ -72,7 +72,7 @@ for index, row in df_bridge.iterrows():
         break
 
 data.append({'road': 'N1', 'id': id_counter, 'model_type': 'sink', 'name': 'sink', 'lat': 22.3314716, 'lon': 91.8515556,
-             'length': np.nan, 'condition': np.nan})
+             'length': 0, 'condition': np.nan})
 id_counter += 1
 
 # Convert the list of dictionaries into a DataFrame

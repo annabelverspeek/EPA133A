@@ -12,7 +12,7 @@ from components import Vehicle
 # run_length = 5 * 24 * 60
 
 # run time 1000 ticks
-run_length = 100
+run_length = 1000
 
 dfs_dict = {}
 
@@ -27,8 +27,8 @@ print(df)
 dfs_dict = {(scenario, seed): df}
 
 # Run scenarios 1-8 with 10 seeds each
-scenarios = range(1, 9)
-seeds = range(1, 11)
+scenarios = range(1, 3)
+seeds = range(1, 3)
 for scenario in scenarios:
     for seed in seeds:
         sim_model = BangladeshModel(seed=seed, scenario=scenario)

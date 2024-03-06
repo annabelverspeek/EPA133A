@@ -79,7 +79,7 @@ class Bridge(Infra):
     def __init__(self, unique_id, model, length=0, name='Unknown', road_name='Unknown', condition='Unknown'):
         super().__init__(unique_id, model, length, name, road_name)
 
-
+        self.condition = condition
         self.broken = False
 
         self.get_delay_time()
@@ -102,31 +102,31 @@ class Bridge(Infra):
 
     #?
 
-    def get_condition(self): #condition wordt nog niet bepaald in model.py, dus zelf invoeren door deze functie
-        for index, row in df_N1.iterrows():
-            if self.unique_id == row['id']:
-                self.condition = row['condition']
-        return self.condition
+    # def get_condition(self): #condition wordt nog niet bepaald in model.py, dus zelf invoeren door deze functie
+    #     for index, row in df_N1.iterrows():
+    #         if self.unique_id == row['id']:
+    #             self.condition = row['condition']
+    #     return self.condition
 
     # def get_delay_time(self):
     #     return self.delay_time
 
 
     def break_bridge(self): #Deze functie wordt gebruikt om de delay time te bepalen voor een brug.
-        condition = self.get_condition()
-        if condition == 'A' and random.random() < self.model.cat_a_percent: #self.model.cat_a_percent wordt bepaald in model.py met de functie: def initialize_scenario(self, scenario): geeft voor elke categorie aan wat de kans is dat de brug breekt.
+        # condition = self.get_condition()
+        if self.condition == 'A' and random.random() < self.model.cat_a_percent: #self.model.cat_a_percent wordt bepaald in model.py met de functie: def initialize_scenario(self, scenario): geeft voor elke categorie aan wat de kans is dat de brug breekt.
             self.broken = True
             self.get_delay_time()
 
-        if condition == 'B' and random.random() < self.model.cat_b_percent:
+        if self.condition == 'B' and random.random() < self.model.cat_b_percent:
             self.broken = True
             self.get_delay_time()
 
-        if condition == 'C' and random.random() < self.model.cat_c_percent:
+        if self.condition == 'C' and random.random() < self.model.cat_c_percent:
             self.broken = True
             self.get_delay_time()
 
-        if condition == 'D' and random.random() < self.model.cat_d_percent:
+        if self.condition == 'D' and random.random() < self.model.cat_d_percent:
             self.broken = True
             self.get_delay_time()
         return self.broken #, self.get_delay_time()
@@ -317,7 +317,7 @@ class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de v
         """
         To print the vehicle trajectory at each step
         """
-        print(self)
+        #print(self)
 
     def drive(self):
 
@@ -379,6 +379,8 @@ class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de v
         self.location = next_infra
         self.location_offset = location_offset
         self.location.vehicle_count += 1
+
+        #print('arriving:', self.location)
 
     def create_dataframe(): #Dit maakt een dataframe om te kunnen terug kijken wat de tijd is dat een bepaalde vehicle in het model is geweest
         """
