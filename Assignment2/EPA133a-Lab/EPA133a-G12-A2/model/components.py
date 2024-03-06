@@ -5,15 +5,12 @@ import random
 
 file = 'transformed_data_N1.csv'
 df_N1 = pd.read_csv(file)
-#print(df_N1.head())
+
 
 # Initialize vehicle_durations list and the vehicle delay list
 vehicle_durations = []
 vehicle_delay = []
-# total_delay_time = 0
-# for i in Vehicle.vehicle_delay:
-#     total_delay_time += i
-# return total_delay_time
+
 # ---------------------------------------------------------------
 class Infra(Agent):
     """
@@ -81,56 +78,47 @@ class Bridge(Infra):
 
         self.condition = condition
         self.broken = False
+        self.delay_time = 0
+
+        self.break_bridge()
 
         self.get_delay_time()
 
 
+    def break_bridge(self): #Deze functie wordt gebruikt om de delay time te bepalen voor een brug.
+        # condition = self.get_condition()
+        if self.condition == 'A' and self.random.random() < self.model.cat_a_percent: #self.model.cat_a_percent wordt bepaald in model.py met de functie: def initialize_scenario(self, scenario): geeft voor elke categorie aan wat de kans is dat de brug breekt.
+            self.broken = True
+            #self.get_delay_time()
+
+        if self.condition == 'B' and self.random.random() < self.model.cat_b_percent:
+            self.broken = True
+            #self.get_delay_time()
+
+        if self.condition == 'C' and self.random.random() < self.model.cat_c_percent:
+            self.broken = True
+            #self.get_delay_time()
+
+        if self.condition == 'D' and self.random.random() < self.model.cat_d_percent:
+            self.broken = True
+            #self.get_delay_time()
+        return self.broken #, self.get_delay_time()
+
     def get_delay_time(self): #toegevoegd, om delay time te berekenen
-        self.break_bridge() #De bridges door het ingevoerde scenario --> zie def break_bridge()
+        #self.broken
+        #self.break_bridge() #De bridges door het ingevoerde scenario --> zie def break_bridge()
         if not self.broken:
             self.delay_time = 0
         else:
             if self.length > 200: #Length wordt bepaald in model.py dus kunnen we gwn gebruiken
-                self.delay_time = random.triangular(1, 2, 4) * 60  # Convert hours to minutes
+                self.delay_time = self.random.triangular(1, 2, 4) * 60  # Convert hours to minutes
             elif 50 <= self.length <= 200:
-                self.delay_time = random.uniform(45, 90)
+                self.delay_time = self.random.uniform(45, 90)
             elif 10 <= self.length < 50:
-                self.delay_time = random.uniform(15, 60)
+                self.delay_time = self.random.uniform(15, 60)
             else:
-                self.delay_time = random.uniform(10, 20)
+                self.delay_time = self.random.uniform(10, 20)
         return self.delay_time
-
-    #?
-
-    # def get_condition(self): #condition wordt nog niet bepaald in model.py, dus zelf invoeren door deze functie
-    #     for index, row in df_N1.iterrows():
-    #         if self.unique_id == row['id']:
-    #             self.condition = row['condition']
-    #     return self.condition
-
-    # def get_delay_time(self):
-    #     return self.delay_time
-
-
-    def break_bridge(self): #Deze functie wordt gebruikt om de delay time te bepalen voor een brug.
-        # condition = self.get_condition()
-        if self.condition == 'A' and random.random() < self.model.cat_a_percent: #self.model.cat_a_percent wordt bepaald in model.py met de functie: def initialize_scenario(self, scenario): geeft voor elke categorie aan wat de kans is dat de brug breekt.
-            self.broken = True
-            self.get_delay_time()
-
-        if self.condition == 'B' and random.random() < self.model.cat_b_percent:
-            self.broken = True
-            self.get_delay_time()
-
-        if self.condition == 'C' and random.random() < self.model.cat_c_percent:
-            self.broken = True
-            self.get_delay_time()
-
-        if self.condition == 'D' and random.random() < self.model.cat_d_percent:
-            self.broken = True
-            self.get_delay_time()
-        return self.broken #, self.get_delay_time()
-
 
 # ---------------------------------------------------------------
 class Link(Infra):
@@ -354,7 +342,7 @@ class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de v
             self.location.remove(self)
             return
         elif isinstance(next_infra, Bridge):
-            self.waiting_time = next_infra.get_delay_time()
+            self.waiting_time = next_infra.delay_time
             if float(self.waiting_time) > 0:
                 # arrive at the bridge and wait
                 self.arrive_at_next(next_infra, 0)
