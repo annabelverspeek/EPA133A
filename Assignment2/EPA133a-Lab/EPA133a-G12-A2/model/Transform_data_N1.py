@@ -12,16 +12,17 @@ df_bridge = df_bridge[['road','name','lat','lon','length', 'condition','chainage
 df_bridge = df_bridge[df_bridge['road'] == 'N1']
 
 #removing double values for the bridges. Same latitudes and longitudes measured twice. Values with shortest length remain.
+# the duplicates are removed so lengths of bridges are not counted double.
 df_bridge = df_bridge.sort_values('length')
 df_bridge = df_bridge.drop_duplicates(subset=['lat', 'lon'], keep = 'last')
 df_bridge = df_bridge[['road','name','lat','lon','length', 'condition','chainage','type']]
 df_bridge = df_bridge.sort_values('chainage')
 
 #print(df_bridge)
-#an empty list is created for data.
+#an empty list is created for data. This list will function as list to contain the information on the source, the bridges, the links and the sink of the analysis.
 data = []
 
-# Initializing the variables
+# Initializing the variables. A counter is initialized so every source, bridge, link or sink has an unique id.
 id_counter = 1000000
 link_chainage = 0
 
@@ -46,7 +47,7 @@ for index, row in df_bridge.iterrows():
     # we do the chainage times 1000 to go from meters to kilometers
     chainage = (float(chainage_str.replace(',', '.')))*1000  # Replace commas and convert to float
 
-    # Append link.
+    # Append links
     if index > 0:
         link_length = chainage - link_chainage  # Calculate the length of the link
         data.append(
@@ -55,7 +56,7 @@ for index, row in df_bridge.iterrows():
         id_counter += 1
         link_chainage = chainage  # Update link chainage after calculating link_length
 
-    # Append bridge. All types of bridges are taken along
+    # Append bridges. All types of bridges are taken along
     if row['type'] == 'PC Girder Bridge' or row['type'] == 'Box Culvert' or row['type'] == 'PC Box' or row['type'] == 'RCC Girder Bridge' or row['type'] == 'Slab Culvert' or row['type'] == 'Steel Beam & RCC Slab' or row['type'] == 'Arch Masonry' or row['type'] == 'RCC Bridge'  or row['type'] == 'Baily with Steel Deck' or row['type'] == 'Truss with Steel Deck' or row['type'] == 'Truss with RCC Slab' or row['type'] == 'Baily with Timber Deck' or row['type'] == 'Pipe Culvert':  # Check if it's a bridge
         bridge_name = f"bridge {bridge_counter}"  # Use generic name for bridge
         data.append({'road': road, 'id': id_counter, 'model_type': 'bridge', 'name': bridge_name, 'lat': lat, 'lon': lon, 'length': length, 'condition': condition})
