@@ -55,6 +55,7 @@ class BangladeshModel(Model):
 
     step_time = 1
 
+#In the definition of the attributes in the class, the categories are added and the function of the initalization of the scenarios is added
     def __init__(self, seed=None, x_max=500, y_max=500, x_min=0, y_min=0, scenario = 0):
 
         self.schedule = BaseScheduler(self)
@@ -76,6 +77,8 @@ class BangladeshModel(Model):
         Vehicle.vehicle_durations = []
         Vehicle.vehicle_delay = []
 
+# the definition of the function initialize_scenario specifies the probability that a certain category of condition of a bridge will break down in a certain scenario.
+# the probabilities are the probabilites mentioned in the assignment from category A to D. The probabilities can be changed per scenario and per category.
     def initialize_scenario(self, scenario):
         scenario_map = {
             0: (0.0, 0.0, 0.0, 0.0),
@@ -96,6 +99,7 @@ class BangladeshModel(Model):
 
         return self.cat_a_percent, self.cat_b_percent, self.cat_c_percent, self.cat_d_percent
 
+# the generation of the model reads the transformed datafile that includes the source, links, bridges and the sink for the N1 road.
     def generate_model(self):
         """
         generate the simulation model according to the csv file component information
