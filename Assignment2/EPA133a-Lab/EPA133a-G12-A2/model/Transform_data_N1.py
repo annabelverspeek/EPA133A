@@ -6,13 +6,13 @@ df_bridge = pd.read_excel(excel_file_bridge)
 df_bridge = df_bridge[['road','name','lat','lon','length', 'condition','chainage','type']]
 
 # import the data from _roads3.csv
-excel_file_road = '_roads3_2.csv'
-df_roads = pd.read_csv(excel_file_road)
-df_roads = df_roads[['road','name','lat','lon']]
+# excel_file_road = '_roads3_2.csv'
+# df_roads = pd.read_csv(excel_file_road)
+# df_roads = df_roads[['road','name','lat','lon']]
 
 # Filter data for road 'N1'
 df_bridge = df_bridge[df_bridge['road'] == 'N1']
-df_roads = df_roads[df_roads['road'] == 'N1']
+# df_roads = df_roads[df_roads['road'] == 'N1']
 
 #removing double values for the bridges. Same latitudes and longitudes measured twice. Values with shortest length remain.
 df_bridge = df_bridge.sort_values('length')
@@ -48,15 +48,18 @@ for index, row in df_bridge.iterrows():
     condition = row['condition']
 
     chainage_str = str(row['chainage'])  # Convert chainage to string
-    chainage = float(chainage_str.replace(',', '.'))  # Replace commas and convert to float
+    # we do the chainage times 1000 to go from meters to kilometers
+    chainage = (float(chainage_str.replace(',', '.')))*1000  # Replace commas and convert to float
 
     # Append link
-    if index>0:
+
+    if index > 0:
         link_length = chainage - link_chainage  # Calculate the length of the link
-        #print(chainage, link_chainage)
-        data.append({'road': road, 'id': id_counter, 'model_type': 'link', 'name': f'link {index}', 'lat': link_chainage, 'lon': link_chainage, 'length': link_length, 'condition': np.nan})
+        data.append(
+            {'road': road, 'id': id_counter, 'model_type': 'link', 'name': f'link {index}', 'lat': link_chainage,
+             'lon': link_chainage, 'length': link_length, 'condition': np.nan})
         id_counter += 1
-        link_chainage = chainage  # Update link chainage
+        link_chainage = chainage  # Update link chainage after calculating link_length
 
     # Append bridge
     if row['type'] == 'PC Girder Bridge' or row['type'] == 'Box Culvert' or row['type'] == 'PC Box' or row['type'] == 'RCC Girder Bridge' or row['type'] == 'Slab Culvert' or row['type'] == 'Steel Beam & RCC Slab' or row['type'] == 'Arch Masonry' or row['type'] == 'RCC Bridge' or row['type'] == 'Truss With Timber Deck':  # Check if it's a bridge
