@@ -344,7 +344,8 @@ class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de v
         elif isinstance(next_infra, Bridge):
             self.waiting_time = next_infra.delay_time
             if float(self.waiting_time) > 0:
-                # arrive at the bridge and wait
+                # Record delay information for the vehicle
+                Vehicle.vehicle_delay.append({'Vehicle_ID': self.unique_id, 'Delay': self.waiting_time, 'Bridge_ID': next_infra.unique_id})
                 self.arrive_at_next(next_infra, 0)
                 self.state = Vehicle.State.WAIT
                 #Vehicle.vehicle_delay.append({'Unique_ID': self.unique_id, 'Delay_In_Model': self.waiting_time})
@@ -370,12 +371,31 @@ class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de v
 
         #print('arriving:', self.location)
 
-    def create_dataframe(): #Dit maakt een dataframe om te kunnen terug kijken wat de tijd is dat een bepaalde vehicle in het model is geweest
+    def create_dataframe():
         """
-        Create a DataFrame from the vehicle_durations list.
+        Create a DataFrame to record vehicle duration and bridge delay time.
         """
-        df = pd.DataFrame(Vehicle.vehicle_durations) #total_delay_time)
-        return df
+        # DataFrame for vehicle duration
+        vehicle_df = pd.DataFrame(Vehicle.vehicle_durations)
+        return vehicle_df
+
+    def create_vehicle_delay_dataframe():
+        """
+        Create a DataFrame to store delay information for each vehicle.
+        """
+        vehicle_delay_data = {
+            'Vehicle_ID': [],
+            'Delay': [],
+            'Bridge_ID': []
+        }
+
+        for vehicle_delay in Vehicle.vehicle_delay:
+            vehicle_delay_data['Vehicle_ID'].append(vehicle_delay['Vehicle_ID'])
+            vehicle_delay_data['Delay'].append(vehicle_delay['Delay'])
+            vehicle_delay_data['Bridge_ID'].append(vehicle_delay['Bridge_ID'])
+
+        delay_df = pd.DataFrame(vehicle_delay_data)
+        return delay_df
 
 
 # EOF -----------------------------------------------------------
