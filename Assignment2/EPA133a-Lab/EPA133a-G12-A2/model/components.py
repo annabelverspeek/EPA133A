@@ -1,7 +1,6 @@
 from mesa import Agent
 from enum import Enum
 import pandas as pd
-import random
 
 file = 'transformed_data_N1.csv'
 df_N1 = pd.read_csv(file)
@@ -84,33 +83,38 @@ class Bridge(Infra):
 
         self.get_delay_time()
 
-
-    def break_bridge(self): #Deze functie wordt gebruikt om de delay time te bepalen voor een brug.
+    # This function is used to determine the delay time for a bridge
+    def break_bridge(self):
         # condition = self.get_condition()
-        if self.condition == 'A' and self.random.random() < self.model.cat_a_percent: #self.model.cat_a_percent wordt bepaald in model.py met de functie: def initialize_scenario(self, scenario): geeft voor elke categorie aan wat de kans is dat de brug breekt.
+        # self.model.cat_a_percent is determined in model.py with the function: def initialize_scenario(self, scenario):
+        # for every category it gives the chance a bridge will break.
+        # the bridge gets the attribute broken depending on the probability it breaks
+        if self.condition == 'A' and self.random.random() < self.model.cat_a_percent:
             self.broken = True
-            #self.get_delay_time()
+            # self.get_delay_time()
 
         if self.condition == 'B' and self.random.random() < self.model.cat_b_percent:
             self.broken = True
-            #self.get_delay_time()
+            # self.get_delay_time()
 
         if self.condition == 'C' and self.random.random() < self.model.cat_c_percent:
             self.broken = True
-            #self.get_delay_time()
+            # self.get_delay_time()
 
         if self.condition == 'D' and self.random.random() < self.model.cat_d_percent:
             self.broken = True
-            #self.get_delay_time()
-        return self.broken #, self.get_delay_time()
+            # self.get_delay_time()
+        return self.broken  # , self.get_delay_time()
 
-    def get_delay_time(self): #toegevoegd, om delay time te berekenen
-        #self.broken
-        #self.break_bridge() #De bridges door het ingevoerde scenario --> zie def break_bridge()
+    # function to calculate the delay time
+    def get_delay_time(self):
+        # self.broken
+        # whether a bridge is broken is determined by the function def break_bridge.
+        # the delay time has random triangular/uniform values depending on the lengths of the bridges.
         if not self.broken:
             self.delay_time = 0
         else:
-            if self.length > 200: #Length wordt bepaald in model.py dus kunnen we gwn gebruiken
+            if self.length > 200: # length is taken from the transformed datafile of the specific road
                 self.delay_time = self.random.triangular(1, 2, 4) * 60  # Convert hours to minutes
             elif 50 <= self.length <= 200:
                 self.delay_time = self.random.uniform(45, 90)
@@ -126,7 +130,7 @@ class Link(Infra):
 
 
 # ---------------------------------------------------------------
-class Sink(Infra): #Hier is niks aan veranderd
+class Sink(Infra):
     """
     Sink removes vehicles
 
@@ -142,7 +146,7 @@ class Sink(Infra): #Hier is niks aan veranderd
     def remove(self, vehicle):
         self.model.schedule.remove(vehicle)
         self.vehicle_removed_toggle = not self.vehicle_removed_toggle
-        #print(str(self) + ' REMOVE ' + str(vehicle))
+        # print(str(self) + ' REMOVE ' + str(vehicle))
 
 
 # ---------------------------------------------------------------
@@ -204,7 +208,7 @@ class SourceSink(Source, Sink):
 
 
 # ---------------------------------------------------------------
-class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de vehicle_duration gemaakt.
+class Vehicle(Agent):
     """
 
     Attributes
@@ -252,7 +256,8 @@ class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de v
     # One tick represents 1 minute
     step_time = 1
 
-    vehicle_durations  = []
+    # the durations and delays are saved in an empty list
+    vehicle_durations = []
     vehicle_delay = []
 
     class State(Enum):
@@ -305,11 +310,11 @@ class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de v
         """
         To print the vehicle trajectory at each step
         """
-        #print(self)
+        # print(self)
 
     def drive(self):
 
-        # the distance that vehicle drives in a tick
+        # the distance that a vehicle drives in a tick
         # speed is global now: can change to instance object when individual speed is needed
         distance = Vehicle.speed * Vehicle.step_time
         distance_rest = self.location_offset + distance - self.location.length
@@ -332,11 +337,11 @@ class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de v
 
         if isinstance(next_infra, Sink):
             # arrive at the sink
-            #print("Vehicle {} arrived at the sink".format(self.unique_id))  # Debug print statement
+            # print("Vehicle {} arrived at the sink".format(self.unique_id))
             self.arrive_at_next(next_infra, 0)
             self.removed_at_step = self.model.schedule.steps
             self.time_in_model = self.removed_at_step - self.generated_at_step
-            #print('I was in the model for:', self.time_in_model) #Om te testen
+            # print('I was in the model for:', self.time_in_model) #to test
             Vehicle.vehicle_durations.append({'Unique_ID': self.unique_id, 'Time_In_Model': self.time_in_model})
             print(vehicle_durations)
             self.location.remove(self)
@@ -347,10 +352,9 @@ class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de v
                 # arrive at the bridge and wait
                 self.arrive_at_next(next_infra, 0)
                 self.state = Vehicle.State.WAIT
-                #Vehicle.vehicle_delay.append({'Unique_ID': self.unique_id, 'Delay_In_Model': self.waiting_time})
+                # Vehicle.vehicle_delay.append({'Unique_ID': self.unique_id, 'Delay_In_Model': self.waiting_time})
                 return
             # else, continue driving
-
 
         if next_infra.length > distance:
             # stay on this object:
@@ -368,16 +372,15 @@ class Vehicle(Agent): #Eigenlijk niks in veranderd behalve de dataframe van de v
         self.location_offset = location_offset
         self.location.vehicle_count += 1
 
-        #print('arriving:', self.location)
+        # print('arriving:', self.location)
 
-    def create_dataframe(): #Dit maakt een dataframe om te kunnen terug kijken wat de tijd is dat een bepaalde vehicle in het model is geweest
+    # function to create a dataframe that prints what amount of time a vehicle has been in the model.
+    def create_dataframe():
         """
         Create a DataFrame from the vehicle_durations list.
         """
-        df = pd.DataFrame(Vehicle.vehicle_durations) #total_delay_time)
+        df = pd.DataFrame(Vehicle.vehicle_durations)  # total_delay_time)
         return df
 
 
 # EOF -----------------------------------------------------------
-
-

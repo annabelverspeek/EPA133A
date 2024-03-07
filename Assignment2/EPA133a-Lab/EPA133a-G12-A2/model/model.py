@@ -1,10 +1,10 @@
+# import needed libraries
 from mesa import Model
 from mesa.time import BaseScheduler
 from mesa.space import ContinuousSpace
 from components import Source, Sink, SourceSink, Bridge, Link, Vehicle
 import pandas as pd
 from collections import defaultdict
-
 
 # ---------------------------------------------------------------
 def set_lat_lon_bound(lat_min, lat_max, lon_min, lon_max, edge_ratio=0.02):
@@ -55,7 +55,7 @@ class BangladeshModel(Model):
 
     step_time = 1
 
-#In the definition of the attributes in the class, the categories are added and the function of the initalization of the scenarios is added
+# In the definition of the attributes in the class, the categories are added and the function of the initialization of the scenarios is added
     def __init__(self, seed=None, x_max=500, y_max=500, x_min=0, y_min=0, scenario = 0):
 
         self.schedule = BaseScheduler(self)
@@ -77,8 +77,8 @@ class BangladeshModel(Model):
         Vehicle.vehicle_durations = []
         Vehicle.vehicle_delay = []
 
-# the definition of the function initialize_scenario specifies the probability that a certain category of condition of a bridge will break down in a certain scenario.
-# the probabilities are the probabilites mentioned in the assignment from category A to D. The probabilities can be changed per scenario and per category.
+# the definition of the function initialize_scenario specifies the probability that a certain category of a condition of a bridge will break down in a certain scenario.
+# the probabilities are the probabilities mentioned in the assignment from category A to D. The probabilities can be changed per scenario and per category.
     def initialize_scenario(self, scenario):
         scenario_map = {
             0: (0.0, 0.0, 0.0, 0.0),
@@ -107,10 +107,11 @@ class BangladeshModel(Model):
         Warning: the labels are the same as the csv column labels
         """
 
-        #df = pd.read_csv('../data/demo-1.csv')
+        # df = pd.read_csv('../data/demo-1.csv')
         df = pd.read_csv('transformed_data_N1.csv')
 
-        # a list of names of roads to be generated
+        # a list of names of roads to be generated.
+        # This can be changed if multiple roads are to be analysed. For now only road N1 will be analysed.
         roads = ['N1']
 
         # roads = [
@@ -121,10 +122,9 @@ class BangladeshModel(Model):
         df_objects_all = []
         for road in roads:
 
-            # be careful with the sorting
-            # better remove sorting by id
             # Select all the objects on a particular road
-            df_objects_on_road = df[df['road'] == road].sort_values(by=['id'])
+            df_objects_on_road = df[df['road'] == road]
+            print(df_objects_on_road.head())
 
             if not df_objects_on_road.empty:
                 df_objects_all.append(df_objects_on_road)
@@ -191,7 +191,7 @@ class BangladeshModel(Model):
             sink = self.random.choice(self.sinks)
             if sink is not source:
                 break
-        #print('The route is: ', self.path_ids_dict[source, sink])
+        # print('The route is: ', self.path_ids_dict[source, sink])
         return self.path_ids_dict[source, sink]
 
     def step(self):

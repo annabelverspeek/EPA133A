@@ -29,7 +29,6 @@ def agent_portrayal(agent):
         # "h": max(agent.population / 100000 * 4, 4)
     }
 
-
     if isinstance(agent, Source):
         if agent.vehicle_generated_flag:
             portrayal["Color"] = "green"

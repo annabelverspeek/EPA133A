@@ -3,7 +3,6 @@ from components import Vehicle
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
 """
     Run simulation
     Print output at terminal
@@ -17,21 +16,29 @@ import matplotlib.pyplot as plt
 # run time 1000 ticks
 run_length = 7200
 
+# create an empty dictionary dfs_dict
 dfs_dict = {}
 
 # Run scenario 0 with only one seed
 scenario = 0
+# use only one seed because no bridge will break
 seed = 1
 sim_model = BangladeshModel(seed=seed, scenario=scenario)
+
+# creating a for loop: the number of iterations is determined by run_length
 for i in range(run_length):
     sim_model.step()
 df = Vehicle.create_dataframe()
 print(df)
+
+# storing the dataframe in the dictionary with the specified scenario
 dfs_dict = {(scenario, seed): df}
 
 # Run scenarios 1-8 with 10 seeds each
-scenarios = [1,8]
-seeds = range(1, 3)
+scenarios = range(0, 9)
+seeds = range(1, 11)
+
+# for each scenario multiple simulations are run with different seeds
 for scenario in scenarios:
     for seed in seeds:
         sim_model = BangladeshModel(seed=seed, scenario=scenario)
@@ -102,8 +109,6 @@ print(dfs_dict)
 # # Print a message indicating the process is finished
 # print("CSV files for average time per truck per seed for each scenario have been created.")
 
-
-
 # Create an empty list to store average time per truck per scenario
 l_average_model_time = []
 
@@ -111,7 +116,7 @@ l_average_model_time = []
 dfs_combined = []
 
 # Iterate over scenarios
-for scenario in [0, 1, 8]:  # Assuming scenarios are numbered from 0 to 8
+for scenario in range(9):  # Assuming scenarios are numbered from 0 to 8
     total_time_in_model = 0
     total_trucks = 0  # Initialize total trucks counter
     num_seeds = 0
@@ -158,11 +163,9 @@ plt.bar(range(len(l_average_model_time)), l_average_model_time)
 plt.title('Average Time in Model per Truck for Each Scenario')
 plt.xlabel('Scenario')
 plt.ylabel('Average Time in Model per Truck')
-plt.xticks(range(len(l_average_model_time)), [0, 1, 8])  # Assuming scenarios are numbered from 0 to 8
+plt.xticks(range(len(l_average_model_time)), [0, 1, 2, 3, 4, 5, 6, 7, 8])  # Assuming scenarios are numbered from 0 to 8
 plt.grid(False)
 plt.show()
 
 # Print a message indicating the process is finished
 print("CSV files for average time per truck per seed for each scenario have been created.")
-
-
