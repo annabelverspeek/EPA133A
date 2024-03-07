@@ -83,29 +83,6 @@ for scenario in range(9):  # Assuming scenarios are numbered from 0 to 8
         l_average_model_time.append(average_time_per_truck)
     else:
         l_average_model_time.append(0)
-#
-# # # Plot the results
-# # plt.figure(figsize=(10, 6))
-# # plt.plot(range(3), l_average_model_time, marker='o', linestyle='-')
-# # plt.title('Average Time in Model per Truck for Each Scenario')
-# # plt.xlabel('Scenario')
-# # plt.ylabel('Average Time in Model per Truck')
-# # plt.xticks(range(3))  # Assuming scenarios are numbered from 0 to 8
-# # plt.grid(True)
-# # plt.show()
-#
-plt.figure(figsize=(10, 6))
-plt.bar(range(9), l_average_model_time)
-plt.title('Average Time in Model per Truck for Each Scenario')
-plt.xlabel('Scenario')
-plt.ylabel('Average Time in Model per Truck')
-plt.xticks(range(9))  # Assuming scenarios are numbered from 0 to 2
-plt.grid(False)
-plt.show()
-
-
-    # Check if the seed is set
-#print("SEED " + str(sim_model._seed))
 
 # Create an empty list to store dataframes for each scenario
 scenario_dataframes = []
@@ -131,3 +108,86 @@ delays_total_df = pd.concat(scenario_dataframes, ignore_index=True)
 
 # Save the combined dataframe to a CSV file
 delays_total_df.to_csv('delays_total.csv', index=False)
+
+# Read the combined duration files for each scenario
+dfs_dict = {}
+for scenario in range(1, 9):
+    file_name = f'duration_scenario_{scenario}.csv'
+    df = pd.read_csv(file_name)
+    dfs_dict[scenario] = df
+
+# Calculate average duration for each scenario
+average_durations = {}
+for scenario, df in dfs_dict.items():
+    average_duration = df['Time_In_Model'].mean()
+    average_durations[scenario] = average_duration
+
+# Create a DataFrame to store average driving times
+average_durations_df = pd.DataFrame(list(average_durations.items()), columns=['Scenario', 'Average_Duration'])
+
+# Write the DataFrame to a CSV file
+average_durations_df.to_csv('average_driving_times.csv', index=False)
+
+
+## This part creates a new csv called cumulative_bridge_delay which shows all the bridges and their cumulative delays
+## over all the runs in the scenario's 1-7
+# List of scenarios (1 to 7)
+
+scenarios = range(1, 8)
+
+# Dictionary to store cumulative delay time for each bridge
+bridge_delay_dict = {}
+
+# Iterate over scenarios
+for scenario in scenarios:
+    # Read delay CSV file for the current scenario
+    filename_delay = f'delay_scenario_{scenario}.csv'
+    df_delay = pd.read_csv(filename_delay)
+
+    # Group by bridge ID and sum the delay times
+    bridge_delay_scenario = df_delay.groupby('Bridge_ID')['Delay'].sum()
+
+    # Update the cumulative delay dictionary
+    for bridge_id, delay_time in bridge_delay_scenario.items():
+        if bridge_id in bridge_delay_dict:
+            bridge_delay_dict[bridge_id] += delay_time
+        else:
+            bridge_delay_dict[bridge_id] = delay_time
+
+# Create a dataframe from the cumulative delay dictionary
+bridge_delay_df = pd.DataFrame(list(bridge_delay_dict.items()), columns=['Bridge_ID', 'Cumulative_Delay'])
+
+# Round off the delay times to whole numbers
+bridge_delay_df['Cumulative_Delay'] = bridge_delay_df['Cumulative_Delay'].round().astype(int)
+
+# Convert the Bridge_ID column to type string
+bridge_delay_df['Bridge_ID'] = bridge_delay_df['Bridge_ID'].astype(str)
+
+# Sort the dataframe based on the largest delay to the smallest delay
+bridge_delay_df = bridge_delay_df.sort_values(by='Cumulative_Delay', ascending=False)
+
+# Save the dataframe to a CSV file
+bridge_delay_df.to_csv('cumulative_bridge_delay.csv', index=False)
+
+##below displays the bridges with the most delays
+# Read the cumulative bridge delay CSV file
+bridge_delay_df = pd.read_csv('cumulative_bridge_delay.csv')
+
+# Sort the dataframe by cumulative delay in descending order
+sorted_delay_df = bridge_delay_df.sort_values(by='Cumulative_Delay', ascending=False)
+
+# Select the top 5 most delayed bridges
+top_5_delayed_bridges = sorted_delay_df.head(5)
+
+# Create a bar plot
+plt.figure(figsize=(10, 6))
+plt.barh(top_5_delayed_bridges['Bridge_ID'].astype(str), top_5_delayed_bridges['Cumulative_Delay'], color='skyblue')
+
+# Add labels and title
+plt.xlabel('Cumulative Delay (minutes)')
+plt.ylabel('Bridge ID')
+plt.title('Top 5 Most Delayed Bridges')
+
+# Show the plot
+plt.tight_layout()
+plt.show()
