@@ -5,7 +5,6 @@ from components import Source, Sink, SourceSink, Bridge, Link, Intersection
 import pandas as pd
 from collections import defaultdict
 
-
 # ---------------------------------------------------------------
 def set_lat_lon_bound(lat_min, lat_max, lon_min, lon_max, edge_ratio=0.02):
     """
