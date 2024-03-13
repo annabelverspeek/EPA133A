@@ -23,3 +23,6 @@ print("SEED " + str(sim_model._seed))
 # One run with given steps
 for i in range(run_length):
     sim_model.step()
+
+G_N1 = sim_model.make_networkx('demo-4.csv', 'N1')
+# G_N2 = sim_model.make_networkx['N2']

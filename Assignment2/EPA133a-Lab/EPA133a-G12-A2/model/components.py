@@ -294,6 +294,8 @@ class Vehicle(Agent):
         """
         self.path_ids = self.model.get_random_route(self.generated_by.unique_id)
 
+
+
     def step(self):
         """
         Vehicle waits or drives at each step
