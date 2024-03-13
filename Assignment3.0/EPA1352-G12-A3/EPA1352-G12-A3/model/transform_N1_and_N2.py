@@ -9,7 +9,9 @@ Overview = pd.read_excel(Overview_file)
 filtered_df = Overview[Overview['length'] >= 25]
 
 # Read the tsv file of roads
-df_roads = pd.read_csv("_roads.tsv", delimiter='\t')
+tsv_file = '_roads.tsv'
+df_roads = pd.read_csv(tsv_file, sep='\t')
+#print(df_roads.head())
 
 df_sourcesinks = pd.DataFrame(columns=['road', 'model_type', 'name', 'lat', 'lon'])
 
@@ -71,4 +73,4 @@ for road in df_roads['road'].unique():
 
 # Create DataFrame from collected data
 df_sourcesinks = pd.DataFrame(data)
-#print(df_sourcesinks.head())
+print(df_sourcesinks.head())
