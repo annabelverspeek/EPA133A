@@ -4,6 +4,8 @@ from mesa.space import ContinuousSpace
 from components import Source, Sink, SourceSink, Bridge, Link, Intersection
 import pandas as pd
 from collections import defaultdict
+import networkx as nx
+import matplotlib.pyplot as plt
 
 
 # ---------------------------------------------------------------
@@ -68,6 +70,51 @@ class BangladeshModel(Model):
 
         self.generate_model()
 
+
+    # Assuming df is your DataFrame with similar structure
+    # Group by Road
+    def make_networkx(self, file):
+        df = pd.read_csv(file)
+        # Create a directed graph
+        G = nx.DiGraph()
+
+        # Add nodes with positions
+        for _, row in df.iterrows():
+            node_id = row['id']
+            pos = (row['lat'], row['lon'])
+            G.add_node(node_id, pos=pos)
+
+        # Add edges between consecutive nodes in the same road
+        for road in df['road'].unique():
+            road_df = df[df['road'] == road]
+            for i in range(len(road_df) - 1):
+                source = road_df.iloc[i]['id']
+                target = road_df.iloc[i + 1]['id']
+                G.add_edge(source, target)
+
+        # Add edges between sources and sinks within the same road
+        for road in df['road'].unique():
+            sourcesinks = df[(df['road'] == road) & (df['model_type'] == 'sourcesink')]
+            for i in range(len(sourcesinks) - 1):
+                source = sourcesinks.iloc[i]['id']
+                target = sourcesinks.iloc[i + 1]['id']
+                G.add_edge(source, target)
+
+        # Add edges between sources and sinks of different roads through intersections
+        for road1 in df['road'].unique():
+            sourcesinks1 = df[(df['road'] == road1) & (df['model_type'] == 'sourcesink')]
+            for road2 in df['road'].unique():
+                if road1 != road2:
+                    intersections = df[(df['road'] == road1) & (df['model_type'] == 'intersection')]
+                    for source in sourcesinks1['id']:
+                        for intersection in intersections['id']:
+                            G.add_edge(source, intersection)
+
+        # Visualize the graph
+        pos = nx.get_node_attributes(G, 'pos')
+        plt.figure(figsize=(10, 8))
+        nx.draw(G, pos, with_labels=True, node_size=3000, node_color='lightblue', font_size=10, font_weight='bold')
+        plt.show()
     def generate_model(self):
         """
         generate the simulation model according to the csv file component information
@@ -96,6 +143,7 @@ class BangladeshModel(Model):
                 3. put the path in reversed order and reindex
                 4. add the path to the path_ids_dict so that the vehicles can drive backwards too
                 """
+
                 path_ids = df_objects_on_road['id']
                 path_ids.reset_index(inplace=True, drop=True)
                 self.path_ids_dict[path_ids[0], path_ids.iloc[-1]] = path_ids
@@ -168,7 +216,7 @@ class BangladeshModel(Model):
                 break
         return self.path_ids_dict[source, sink]
 
-    # TODO
+    # TODO random bij de
     def get_route(self, source):
         return self.get_straight_route(source)
 
