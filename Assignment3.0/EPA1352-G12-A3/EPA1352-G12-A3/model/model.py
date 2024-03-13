@@ -68,6 +68,7 @@ class BangladeshModel(Model):
         self.sources = []
         self.sinks = []
 
+        # self.make_networkx()
         self.generate_model()
 
 
@@ -128,13 +129,26 @@ class BangladeshModel(Model):
         # TODO You can also read in the road column to generate this list automatically
         roads = ['N1', 'N2']
 
+
+        df_sourcesinks = df[df['model_type'] == 'sourcesink']
         df_objects_all = []
+
+
         for road in roads:
             # Select all the objects on a particular road in the original order as in the cvs
-            df_objects_on_road = df[df['road'] == road]
+            df_objects_on_road = df_sourcesinks[df_sourcesinks['road'] == road]
 
             if not df_objects_on_road.empty:
                 df_objects_all.append(df_objects_on_road)
+
+                sinksource_names = df_objects_on_road['sourcesink'].unique()
+
+                pairs = list(combinations(sinksource_names, 2))
+
+                for pair in pairs:
+                    self.path_ids_dict[(road, pair[0], pair[1])] = df_objects_on_road['id'].tolist()
+
+
 
                 """
                 Set the path 
@@ -143,8 +157,7 @@ class BangladeshModel(Model):
                 3. put the path in reversed order and reindex
                 4. add the path to the path_ids_dict so that the vehicles can drive backwards too
                 """
-
-                path_ids = df_objects_on_road['id']
+                path_ids = df_objects_on_road['id'] # --> deze veranderen/deleten
                 path_ids.reset_index(inplace=True, drop=True)
                 self.path_ids_dict[path_ids[0], path_ids.iloc[-1]] = path_ids
                 self.path_ids_dict[path_ids[0], None] = path_ids
@@ -152,6 +165,7 @@ class BangladeshModel(Model):
                 path_ids.reset_index(inplace=True, drop=True)
                 self.path_ids_dict[path_ids[0], path_ids.iloc[-1]] = path_ids
                 self.path_ids_dict[path_ids[0], None] = path_ids
+                print('dictionary path', self.path_ids_dict)
 
         # put back to df with selected roads so that min and max and be easily calculated
         df = pd.concat(df_objects_all)
@@ -204,6 +218,42 @@ class BangladeshModel(Model):
                     x = row['lon']
                     self.space.place_agent(agent, (x, y))
                     agent.pos = (x, y)
+        print('path_ids_dict', self.path_ids_dict)
+    # def make_networkx(self, df):
+    #     #graph = networkx nog te maken
+    #         #include lon lat on position
+    #         #include length on links as weight om shortest path te bepalen
+    #     #return self.graph
+    #
+    #     # Assuming df is your DataFrame with similar structure
+    #     # Group by Road
+    #     grouped = df.groupby('road')
+    #
+    #     # Create Networkx Graphs
+    #     graphs = {}
+    #     for road, data in grouped:
+    #         # Initialize graph
+    #         G = nx.Graph()
+    #
+    #         # Add edges within the same road
+    #         for _, row in data.iterrows():
+    #             if row['model_type'] == 'link':
+    #                 G.add_edge(row['id'], row['id'] + 1, weight=row['length'])
+    #
+    #         # Add edges to other start and end points
+    #         for _, row in data.iterrows():
+    #             if row['model_type'] == 'sourcesink':
+    #                 for _, other_row in data.iterrows():
+    #                     if other_row['model_type'] == 'sourcesink' and other_row['id'] != row['id']:
+    #                         G.add_edge(row['id'], other_row['id'], weight=1)  # Assuming weight of 1 for now
+    #
+    #         graphs[road] = G
+    #
+    #     # Visualization (Optional)
+    #     # Visualize graphs as needed
+    #
+    #     # Accessing a specific graph
+
 
     def get_random_route(self, source):
         """
@@ -216,7 +266,11 @@ class BangladeshModel(Model):
                 break
         return self.path_ids_dict[source, sink]
 
-    # TODO random bij de
+    # TODO
+    # in seth path def wordt moet dit worden aangeroepen (hij doet nu gwn get straight route)
+    # Get random source and random sink
+    # Find shortest path if in dictionary
+    # not in distionary calculate shortest path.
     def get_route(self, source):
         return self.get_straight_route(source)
 
