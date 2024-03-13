@@ -22,55 +22,36 @@ counter = 1
 # Iterate over each unique road
 for road in df_roads['road'].unique():
     road_data = df_roads[df_roads['road'] == road]
+
     # Extract the first LRP from the first row
-    first_lrp = road_data.iloc[0]
+    road_row = road_data.iloc[0]
     data.append({
-        'road': first_lrp['road'],
+        'road': road_row['road'],
         'model_type': 'sourcesink',
         'name': f'SoSi{counter}',
-        'lat': first_lrp['lat1'],
-        'lon': first_lrp['lon1']
+        'lat': road_row['lat1'],
+        'lon': road_row['lon1']
     })
     counter += 1
 
-    # Iterate over each unique road
-    for road in df_roads['road'].unique():
-        road_data = df_roads[df_roads['road'] == road]
-        # Extract the first LRP from the first row
-        first_lrp = road_data.iloc[0]
-        data.append({
-            'road': first_lrp['road'],
-            'model_type': 'sourcesink',
-            'name': f'SoSi{counter}',
-            'lat': first_lrp['lat1'],
-            'lon': first_lrp['lon1']
-        })
-        counter += 1
-
-        # Extract the last LRP from the last row
-        last_lrp = None
-        last_lrp_lat = None
-        last_lrp_lon = None
-
-        # Iterate over rows in reverse order to find the last LRP with a non-null value
-        for idx, row in road_data.iloc[1:][::-1].iterrows():  # Skip the first row (column names)
-            # Find the last non-null value in the row
-            last_valid_index = row.last_valid_index()
-            if last_valid_index is not None:
-                last_valid_index = int(last_valid_index)  # Convert to integer
-                last_lrp_lat = row[last_valid_index - 1]  # Latitude is the value before the last valid index
-                last_lrp_lon = row[last_valid_index]      # Longitude is the last valid value
-                break
-
-        data.append({
-            'road': road,
-            'model_type': 'sourcesink',
-            'name': f'SoSi{counter}',
-            'lat': last_lrp_lat,
-            'lon': last_lrp_lon
-        })
-        counter += 1
+    last_col_id = len(road_row)-1
+    i = last_col_id
+    for i in range(last_col_id, 0, -3):
+        if pd.notnull(road_row[i]) and pd.notnull(road_row[i-1]):        # THEN , IF NT NONE:
+            data.append({
+                'road': road_row['road'],
+                'model_type': 'sourcesink',
+                'name': f'SoSi{counter}',
+                'lat': road_row[i-1],
+                'lon': road_row[i]
+            })
+            counter += 1
+            break
 
 # Create DataFrame from collected data
 df_sourcesinks = pd.DataFrame(data)
-print(df_sourcesinks.head())
+#print(df_sourcesinks.head(30))
+
+csv_file_sourcesink = 'sourcesink_roads.csv'
+df_sourcesinks.to_csv(csv_file_sourcesink, index=False)
+print(f"CSV file '{csv_file_sourcesink}' has been created successfully.")

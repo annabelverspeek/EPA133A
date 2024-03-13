@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 # import the data from the excel file and read the data
-excel_file = 'BMMS_overview2.xlsx'
+excel_file = '../model/BMMS_overview2.xlsx'
 df = pd.read_excel(excel_file)
 print(df.shape)
 
@@ -64,7 +64,7 @@ new_df = pd.DataFrame(data)
 #
 # print(f"CSV file '{csv_file_path}' has been created successfully.")
 
-csv_file_path_N1 = 'transformed_data_N1.csv'
+csv_file_path_N1 = '../model/transformed_data_N1.csv'
 new_df.to_csv(csv_file_path_N1, index=False)
 
 print(f"CSV file '{csv_file_path_N1}' has been created successfully.")
