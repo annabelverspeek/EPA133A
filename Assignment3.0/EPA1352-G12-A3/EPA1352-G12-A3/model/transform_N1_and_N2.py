@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+# Step 1: filtering on rows that are longer than 25 km.
 # Import the data of the overview of all roads
 Overview_file = '_overview.xlsx'
 Overview = pd.read_excel(Overview_file)
@@ -13,8 +14,10 @@ tsv_file = '_roads.tsv'
 df_roads = pd.read_csv(tsv_file, sep='\t')
 #print(df_roads.head())
 
+#Step 2: defining the sources and sinks of all roads in Bangladesh.
 df_sourcesinks = pd.DataFrame(columns=['road', 'model_type', 'name', 'lat', 'lon'])
 
+# we create an empty list to store the sources and sinks
 data = []
 
 counter = 1
@@ -23,7 +26,7 @@ counter = 1
 for road in df_roads['road'].unique():
     road_data = df_roads[df_roads['road'] == road]
 
-    # Extract the first LRP from the first row
+    # Extract the first LRP from the first row with the data needed to be the same format as the demo file
     road_row = road_data.iloc[0]
     data.append({
         'road': road_row['road'],
@@ -34,6 +37,8 @@ for road in df_roads['road'].unique():
     })
     counter += 1
 
+    # we select the last column of each road. Because not every road has the same amount of LRPs,
+    # we find the last column that contains a value for each road. This is being found by skipping 3 steps every time to find the lon value
     last_col_id = len(road_row)-1
     i = last_col_id
     for i in range(last_col_id, 0, -3):
@@ -48,15 +53,15 @@ for road in df_roads['road'].unique():
             counter += 1
             break
 
-# Create DataFrame from collected data
-df_sourcesinks = pd.DataFrame(data)
+# we create a DataFrame from collected data
 #print(df_sourcesinks.head(30))
 
+#the dataframe is stored as csv file
 csv_file_sourcesink = 'sourcesink_roads.csv'
 df_sourcesinks.to_csv(csv_file_sourcesink, index=False)
 #print(f"CSV file '{csv_file_sourcesink}' has been created successfully.")
 
-
+#Step 2: we scrape data from html files with the lrps of the roads to find the intersections of roads
 # import the html file with the road descriptions. Everything is done for N1 and N2
 file_path_N1 = 'N1.lrps.htm'
 file_path_N2 = 'N2.lrps.htm'
@@ -83,28 +88,38 @@ filtered_rows = []
 # Iterate over each row in filtered_length for N1.
 for index, row in filtered_df_length.iterrows():
     road_name = row['road']
-    # Exclude "N1" road name
-    if road_name != "N1":
-        # Filter rows in filtered_df where the "Description" column contains the road name
-        matching_rows_N1 = filtered_df_N1[filtered_df_N1['Description'].str.contains(road_name, case=False)].copy()
-        # Add a new column "road name" with the road name for each matching row
-        matching_rows_N1['road name'] = road_name
-        # Append the matching rows to the list
-        filtered_rows.append(matching_rows_N1)
+    if road_name.startswith('N'):
+        # Exclude "N1" road name
+        if road_name != "N1":
+            # Filter rows in filtered_df where the "Description" column contains the road name
+            matching_rows_N1 = filtered_df_N1[filtered_df_N1['Description'].str.contains(road_name, case=False)].copy()
+            # Add a new column "road name" with the road name for each matching row
+            matching_rows_N1['road name'] = road_name
+            # Append the matching rows to the list
+            filtered_rows.append(matching_rows_N1)
 
 # Iterate over each row in filtered_length for N2.
 for index, row in filtered_df_length.iterrows():
     road_name = row['road']
-    # Exclude "N1" road name
-    if road_name != "N2":
-        # Filter rows in filtered_df where the "Description" column contains the road name
-        matching_rows_N2 = filtered_df_N2[filtered_df_N2['Description'].str.contains(road_name, case=False)].copy()
-        # Add a new column "road name" with the road name for each matching row
-        matching_rows_N2['road name'] = road_name
-        # Append the matching rows to the list
-        filtered_rows.append(matching_rows_N2)
+    if road_name.startswith('N'):
+        # Exclude "N1" road name
+        if road_name != "N2":
+            # Filter rows in filtered_df where the "Description" column contains the road name
+            matching_rows_N2 = filtered_df_N2[filtered_df_N2['Description'].str.contains(road_name, case=False)].copy()
+            # Add a new column "road name" with the road name for each matching row
+            matching_rows_N2['road name'] = road_name
+            # Append the matching rows to the list
+            filtered_rows.append(matching_rows_N2)
 
 # Concatenate the filtered rows into a single DataFrame
 filtered_df = pd.concat(filtered_rows, ignore_index=True)
 
-print(filtered_df.head(30))
+#print(filtered_df.head(30))
+
+# Get unique road names from filtered_df
+filtered_road_names = filtered_df['road name'].unique()
+
+# Filter df_sourcesinks to contain only roads present in filtered_df
+filtered_sourcesinks = df_sourcesinks[df_sourcesinks['road'].isin(filtered_road_names)]
+
+print(filtered_sourcesinks.head(100))
