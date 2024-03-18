@@ -1,7 +1,10 @@
 from mesa import Agent
 from enum import Enum
+import pandas as pd
+import matplotlib.pyplot as plt
 
 vehicle_durations = []
+
 # ---------------------------------------------------------------
 class Infra(Agent):
     """
@@ -51,8 +54,8 @@ class Bridge(Infra):
     """
 
 
-    def _init_(self, unique_id, model, length=0, name='Unknown', road_name='Unknown', condition='Unknown'):
-        super()._init_(unique_id, model, length, name, road_name)
+    def __init__(self, unique_id, model, length=0, name='Unknown', road_name='Unknown', condition='Unknown'):
+        super().__init__(unique_id, model, length, name, road_name)
 
         self.condition = condition
         self.broken = False
@@ -234,9 +237,12 @@ class Vehicle(Agent):
     # One tick represents 1 minute
     step_time = 1
 
+
     class State(Enum):
         DRIVE = 1
         WAIT = 2
+
+
 
     def __init__(self, unique_id, model, generated_by,
                  location_offset=0, path_ids=None):
@@ -313,7 +319,7 @@ class Vehicle(Agent):
             self.removed_at_step = self.model.schedule.steps
             self.time_in_model = self.removed_at_step - self.generated_at_step
             Vehicle.vehicle_durations.append({'Unique_ID': self.unique_id, 'Time_In_Model': self.time_in_model})
-            print(vehicle_durations)
+            #print(vehicle_durations)
             self.location.remove(self)
             return
 

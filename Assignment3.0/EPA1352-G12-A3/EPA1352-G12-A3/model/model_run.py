@@ -1,5 +1,7 @@
 from model import BangladeshModel
-
+from components import Vehicle
+import pandas as pd
+import matplotlib.pyplot as plt
 """
     Run simulation
     Print output at terminal
@@ -99,7 +101,7 @@ plt.bar(range(len(l_average_model_time)), l_average_model_time)
 plt.title('Average Time in Model per Truck for Each Scenario')
 plt.xlabel('Scenario')
 plt.ylabel('Average Time in Model per Truck')
-plt.xticks(range(len(l_average_model_time)), [0, 1, 2, 3, 4, 5])  # Assuming scenarios are numbered from 0 to 5
+plt.xticks(range(len(l_average_model_time)), [0, 1, 2, 3, 4])  # Assuming scenarios are numbered from 0 to 5
 plt.grid(False)
 plt.show()
 

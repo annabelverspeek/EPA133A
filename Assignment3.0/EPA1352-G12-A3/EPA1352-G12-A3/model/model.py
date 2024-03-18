@@ -1,7 +1,7 @@
 from mesa import Model
 from mesa.time import BaseScheduler
 from mesa.space import ContinuousSpace
-from components import Source, Sink, SourceSink, Bridge, Link, Intersection
+from components import Source, Sink, SourceSink, Bridge, Link, Vehicle, Intersection
 import pandas as pd
 from collections import defaultdict
 import networkx as nx
@@ -79,6 +79,8 @@ class BangladeshModel(Model):
         # self.make_networkx()
 
         self.generate_model()
+
+        Vehicle.vehicle_durations = []
 
     def initialize_scenario(self, scenario):
         scenario_map = {
