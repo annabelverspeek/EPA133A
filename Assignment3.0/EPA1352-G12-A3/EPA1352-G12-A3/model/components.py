@@ -237,6 +237,8 @@ class Vehicle(Agent):
     # One tick represents 1 minute
     step_time = 1
 
+    vehicle_durations = []
+    vehicle_delay = []
 
     class State(Enum):
         DRIVE = 1
@@ -327,6 +329,8 @@ class Vehicle(Agent):
             self.waiting_time = next_infra.get_delay_time()
             if self.waiting_time > 0:
                 # arrive at the bridge and wait
+                Vehicle.vehicle_delay.append(
+                    {'Vehicle_ID': self.unique_id, 'Delay': self.waiting_time, 'Bridge_ID': next_infra.unique_id})
                 self.arrive_at_next(next_infra, 0)
                 self.state = Vehicle.State.WAIT
                 return
@@ -350,9 +354,28 @@ class Vehicle(Agent):
 
     def create_dataframe():
         """
-        Create a DataFrame from the vehicle_durations list.
+        Create a DataFrame to record vehicle duration and bridge delay time.
         """
-        df = pd.DataFrame(Vehicle.vehicle_durations)
-        return df
+        # DataFrame for vehicle duration
+        vehicle_df = pd.DataFrame(Vehicle.vehicle_durations)
+        return vehicle_df
+
+    def create_vehicle_delay_dataframe():
+        """
+        Create a DataFrame to store delay information for each vehicle.
+        """
+        vehicle_delay_data = {
+            'Vehicle_ID': [],
+            'Delay': [],
+            'Bridge_ID': []
+        }
+
+        for vehicle_delay in Vehicle.vehicle_delay:
+            vehicle_delay_data['Vehicle_ID'].append(vehicle_delay['Vehicle_ID'])
+            vehicle_delay_data['Delay'].append(vehicle_delay['Delay'])
+            vehicle_delay_data['Bridge_ID'].append(vehicle_delay['Bridge_ID'])
+
+        delay_df = pd.DataFrame(vehicle_delay_data)
+        return delay_df
 
 # EOF -----------------------------------------------------------

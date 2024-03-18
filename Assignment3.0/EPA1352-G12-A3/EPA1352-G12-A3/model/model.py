@@ -81,6 +81,7 @@ class BangladeshModel(Model):
         self.generate_model()
 
         Vehicle.vehicle_durations = []
+        Vehicle.vehicle_delay = []
 
     def initialize_scenario(self, scenario):
         scenario_map = {
@@ -121,11 +122,11 @@ class BangladeshModel(Model):
                 weight = road_df.iloc[i]['length']  # Get length from the 'length' column
                 G.add_edge(source, target, weight=weight)
 
-        # Visualize the graph
-        pos = nx.get_node_attributes(G, 'pos')
-        plt.figure(figsize=(10, 8))
-        nx.draw(G, pos, with_labels=True, node_size=3000, node_color='lightblue', font_size=10, font_weight='bold')
-        plt.show()
+        # # Visualize the graph
+        # pos = nx.get_node_attributes(G, 'pos')
+        # plt.figure(figsize=(10, 8))
+        # nx.draw(G, pos, with_labels=True, node_size=3000, node_color='lightblue', font_size=10, font_weight='bold')
+        # plt.show()
 
         return G
     def generate_model(self):
