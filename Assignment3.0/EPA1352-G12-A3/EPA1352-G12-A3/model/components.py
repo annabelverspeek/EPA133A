@@ -1,7 +1,7 @@
 from mesa import Agent
 from enum import Enum
 
-
+vehicle_durations = []
 # ---------------------------------------------------------------
 class Infra(Agent):
     """
@@ -50,18 +50,51 @@ class Bridge(Infra):
 
     """
 
-    def __init__(self, unique_id, model, length=0,
-                 name='Unknown', road_name='Unknown', condition='Unknown'):
-        super().__init__(unique_id, model, length, name, road_name)
+
+    def _init_(self, unique_id, model, length=0, name='Unknown', road_name='Unknown', condition='Unknown'):
+        super()._init_(unique_id, model, length, name, road_name)
 
         self.condition = condition
+        self.broken = False
+        self.delay_time = 0
 
-        # TODO
-        self.delay_time = self.random.randrange(0, 10)
-        # print(self.delay_time)
+        self.break_bridge()
 
-    # TODO
+        self.get_delay_time()
+
+    # This function is used to determine the delay time for a bridge
+    def break_bridge(self):
+        # self.model.cat_a_percent is determined in model.py with the function: def initialize_scenario(self, scenario):
+        # for every category it gives the chance a bridge will break.
+        # the bridge gets the attribute broken depending on the probability it breaks
+        if self.condition == 'A' and self.random.random() < self.model.cat_a_percent:
+            self.broken = True
+
+        if self.condition == 'B' and self.random.random() < self.model.cat_b_percent:
+            self.broken = True
+
+        if self.condition == 'C' and self.random.random() < self.model.cat_c_percent:
+            self.broken = True
+
+        if self.condition == 'D' and self.random.random() < self.model.cat_d_percent:
+            self.broken = True
+        return self.broken
+
+    # function to calculate the delay time
     def get_delay_time(self):
+        # whether a bridge is broken is determined by the function def break_bridge.
+        # the delay time has random triangular/uniform values depending on the lengths of the bridges.
+        if not self.broken:
+            self.delay_time = 0
+        else:
+            if self.length > 200:  # length is taken from the transformed datafile of the specific road
+                self.delay_time = self.random.triangular(1, 2, 4) * 60  # Convert hours to minutes
+            elif 50 <= self.length <= 200:
+                self.delay_time = self.random.uniform(45, 90)
+            elif 10 <= self.length < 50:
+                self.delay_time = self.random.uniform(15, 60)
+            else:
+                self.delay_time = self.random.uniform(10, 20)
         return self.delay_time
 
 
@@ -231,7 +264,7 @@ class Vehicle(Agent):
         """
         Set the origin destination path of the vehicle
         """
-        self.path_ids = self.model.get_route(self.generated_by.unique_id)
+        self.path_ids = self.model.get_random_route(self.generated_by.unique_id)
 
     def step(self):
         """
@@ -278,8 +311,12 @@ class Vehicle(Agent):
             # arrive at the sink
             self.arrive_at_next(next_infra, 0)
             self.removed_at_step = self.model.schedule.steps
+            self.time_in_model = self.removed_at_step - self.generated_at_step
+            Vehicle.vehicle_durations.append({'Unique_ID': self.unique_id, 'Time_In_Model': self.time_in_model})
+            print(vehicle_durations)
             self.location.remove(self)
             return
+
         elif isinstance(next_infra, Bridge):
             self.waiting_time = next_infra.get_delay_time()
             if self.waiting_time > 0:
@@ -304,5 +341,12 @@ class Vehicle(Agent):
         self.location = next_infra
         self.location_offset = location_offset
         self.location.vehicle_count += 1
+
+    def create_dataframe():
+        """
+        Create a DataFrame from the vehicle_durations list.
+        """
+        df = pd.DataFrame(Vehicle.vehicle_durations)
+        return df
 
 # EOF -----------------------------------------------------------
