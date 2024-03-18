@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 
 # Step 1: filtering on rows that are longer than 25 km.
@@ -54,7 +53,9 @@ for road in df_roads['road'].unique():
             break
 
 # we create a DataFrame from collected data
+df_sourcesinks = pd.DataFrame(data)
 #print(df_sourcesinks.head(30))
+
 
 #the dataframe is stored as csv file
 csv_file_sourcesink = 'sourcesink_roads.csv'
@@ -122,4 +123,6 @@ filtered_road_names = filtered_df['road name'].unique()
 # Filter df_sourcesinks to contain only roads present in filtered_df
 filtered_sourcesinks = df_sourcesinks[df_sourcesinks['road'].isin(filtered_road_names)]
 
-print(filtered_sourcesinks.head(100))
+filtered_sourcesinks['name'] = ['SoSi' + str(i) for i in range(1, len(filtered_sourcesinks) + 1)]
+
+print(filtered_sourcesinks.head(16))
