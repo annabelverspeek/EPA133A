@@ -1,7 +1,7 @@
 from mesa import Model
 from mesa.time import BaseScheduler
 from mesa.space import ContinuousSpace
-from components import Source, Sink, SourceSink, Bridge, Link, Intersection
+from components import Source, Sink, SourceSink, Bridge, Link, Vehicle, Intersection
 import pandas as pd
 from collections import defaultdict
 import networkx as nx
@@ -60,7 +60,7 @@ class BangladeshModel(Model):
 
     file_name = '../data/demo-4.csv'
 
-    def __init__(self, seed=None, x_max=500, y_max=500, x_min=0, y_min=0):
+    def __init__(self, seed=None, x_max=500, y_max=500, x_min=0, y_min=0, scenario = 0):
 
         self.schedule = BaseScheduler(self)
         self.running = True
@@ -68,9 +68,35 @@ class BangladeshModel(Model):
         self.space = None
         self.sources = []
         self.sinks = []
+        self.cat_a_percent = None
+        self.cat_b_percent = None
+        self.cat_c_percent = None
+        self.cat_d_percent = None
+        self.scenario = scenario
+
+        self.initialize_scenario(self.scenario)
 
         # self.make_networkx()
+
         self.generate_model()
+
+        Vehicle.vehicle_durations = []
+
+    def initialize_scenario(self, scenario):
+        scenario_map = {
+            0: (0.0, 0.0, 0.0, 0.0),
+            1: (0.0, 0.0, 0.0, 0.05),
+            2: (0.0, 0.0, 0.05, 0.1),
+            3: (0.0, 0.05, 0.1, 0.2),
+            4: (0.05, 0.1, 0.2, 0.4),
+        }
+
+        if scenario in scenario_map:
+            self.cat_a_percent, self.cat_b_percent, self.cat_c_percent, self.cat_d_percent = scenario_map[scenario]
+        else:
+            raise ValueError("Invalid scenario number")
+
+        return self.cat_a_percent, self.cat_b_percent, self.cat_c_percent, self.cat_d_percent
 
 
     # Assuming df is your DataFrame with similar structure
@@ -92,31 +118,15 @@ class BangladeshModel(Model):
             for i in range(len(road_df) - 1):
                 source = road_df.iloc[i]['id']
                 target = road_df.iloc[i + 1]['id']
-                G.add_edge(source, target)
-
-        # Add edges between sources and sinks within the same road
-        for road in df['road'].unique():
-            sourcesinks = df[(df['road'] == road) & (df['model_type'] == 'sourcesink')]
-            for i in range(len(sourcesinks) - 1):
-                source = sourcesinks.iloc[i]['id']
-                target = sourcesinks.iloc[i + 1]['id']
-                G.add_edge(source, target)
-
-        # Add edges between sources and sinks of different roads through intersections
-        for road1 in df['road'].unique():
-            sourcesinks1 = df[(df['road'] == road1) & (df['model_type'] == 'sourcesink')]
-            for road2 in df['road'].unique():
-                if road1 != road2:
-                    intersections = df[(df['road'] == road1) & (df['model_type'] == 'intersection')]
-                    for source in sourcesinks1['id']:
-                        for intersection in intersections['id']:
-                            G.add_edge(source, intersection)
+                weight = road_df.iloc[i]['length']  # Get length from the 'length' column
+                G.add_edge(source, target, weight=weight)
 
         # Visualize the graph
         pos = nx.get_node_attributes(G, 'pos')
         plt.figure(figsize=(10, 8))
         nx.draw(G, pos, with_labels=True, node_size=3000, node_color='lightblue', font_size=10, font_weight='bold')
         plt.show()
+
         return G
     def generate_model(self):
         """
@@ -150,13 +160,13 @@ class BangladeshModel(Model):
                 road_sink_id = road_sink_row['id']
 
                 if road_source_id != road_sink_id:
-                    shortest_path_forward = nx.shortest_path(G, source=road_source_id, target=road_sink_id)
-                    shortest_path_backward = nx.shortest_path(G, source=road_sink_id, target=road_source_id)
-                    self.path_ids_dict[(road_source_id, road_sink_id)] = shortest_path_forward
-                    self.path_ids_dict[(road_sink_id, road_source_id)] = shortest_path_backward
+                    path_ids = nx.shortest_path(G, source=road_source_id, target=road_sink_id, weight = 'length')
+                    #path_ids = list(path_ids)
+                    self.path_ids_dict[(road_source_id, road_sink_id)] = path_ids
 
 
-            print('path ids dict', self.path_ids_dict)
+
+        print('path ids dict', self.path_ids_dict)
 
         # put back to df with selected roads so that min and max and be easily calculated
         df = pd.concat(df_objects_all)
@@ -209,7 +219,6 @@ class BangladeshModel(Model):
                     x = row['lon']
                     self.space.place_agent(agent, (x, y))
                     agent.pos = (x, y)
-        print('path_ids_dict', self.path_ids_dict)
 
 
     def get_random_route(self, source):
@@ -225,7 +234,7 @@ class BangladeshModel(Model):
 
     # TODO
     def get_route(self, source):
-        return self.get_straight_route(source)
+        return self.get_random_route(source)
 
     def get_straight_route(self, source):
         """
