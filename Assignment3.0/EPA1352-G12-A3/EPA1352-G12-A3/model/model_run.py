@@ -7,103 +7,129 @@ import matplotlib.pyplot as plt
     Print output at terminal
 """
 
-# ---------------------------------------------------------------
-
-# run time 5 x 24 hours; 1 tick 1 minute
-run_length = 5 * 24 * 60
-
-# seed = 1234567
-#
-# sim_model = BangladeshModel(seed=seed)
-#
-# # Check if the seed is set
-# print("SEED " + str(sim_model._seed))
-#
-# # One run with given steps
-# for i in range(run_length):
-#     sim_model.step()
-
-# create an empty dictionary dfs_dict
-dfs_dict = {}
+# Run simulation parameters
+run_length = 5 * 24 * 60  # 5 days, 24 hours, 60 minutes per hour
 
 # Run scenario 0 with only one seed
 scenario = 0
-# use only one seed because no bridge will break
 seed = 1
 sim_model = BangladeshModel(seed=seed, scenario=scenario)
 
-# creating a for loop: the number of iterations is determined by run_length
-for i in range(run_length):
-    sim_model.step()
-df = Vehicle.create_dataframe()
-print(df)
+dfs_dict = {(scenario, seed): Vehicle.create_dataframe()}
 
-# storing the dataframe in the dictionary with the specified scenario
-dfs_dict = {(scenario, seed): df}
-
-# Run scenarios 1-4 with 10 seeds each
+# Define scenarios and seeds
 scenarios = range(1, 5)
 seeds = range(1, 11)
 
-# for each scenario multiple simulations are run with different seeds
+# Run simulations for each scenario and seed
 for scenario in scenarios:
+    dfs_duration = []
+    dfs_delay = []
+
     for seed in seeds:
         sim_model = BangladeshModel(seed=seed, scenario=scenario)
-        for i in range(run_length):
+        for _ in range(run_length):
             sim_model.step()
-        df = Vehicle.create_dataframe()
-        dfs_dict[(scenario, seed)] = df
+        df_duration = Vehicle.create_dataframe()
+        df_delay = Vehicle.create_vehicle_delay_dataframe()
 
-print(dfs_dict)
+        df_duration['Seed'] = seed
+        df_delay['Seed'] = seed
 
+        dfs_duration.append(df_duration)
+        dfs_delay.append(df_delay)
 
-# Now we want to store the average time per truck per scenario
-# Create an empty list
+    combined_df_duration = pd.concat(dfs_duration, ignore_index=True)
+    combined_df_delay = pd.concat(dfs_delay, ignore_index=True)
+
+    filename_duration = f'duration_scenario_{scenario}.csv'
+    combined_df_duration.to_csv(filename_duration, index=False)
+
+    filename_delay = f'delay_scenario_{scenario}.csv'
+    combined_df_delay.to_csv(filename_delay, index=False)
+
+# Plot the average time per scenario
 l_average_model_time = []
 
-# Iterate over scenarios
-for scenario in range(5):  # Assuming scenarios are numbered from 0 to 5
+for scenario in range(5):
     total_time_in_model = 0
-    total_trucks = 0  # Initialize total trucks counter
+    total_trucks = 0
     num_seeds = 0
-
-    # Create an empty list to store DataFrames for each seed
-    dfs = []
-
-    # Iterate over seeds
-    for seed in range(1, 11):  # Seeds range from 1 to 10
+    for seed in range(1, 11):
         if (scenario, seed) in dfs_dict:
             df = dfs_dict[(scenario, seed)]
-            total_time_in_model += df['Time_In_Model'].sum()
-            total_trucks += len(df)  # Count the number of rows in the DataFrame, which represents the number of trucks
-            num_seeds += 1
+            if 'Time_In_Model' in df:
+                total_time_in_model += df['Time_In_Model'].sum()
+                total_trucks += len(df)
+                num_seeds += 1
+    if num_seeds > 0:
+        average_time_per_truck = total_time_in_model / total_trucks
+        l_average_model_time.append(average_time_per_truck)
+    else:
+        l_average_model_time.append(0)
 
-            # Calculate average time per truck for the current seed
-            average_time_per_truck = df['Time_In_Model'].sum() / len(df) if len(df) > 0 else 0
+# Create an empty list to store dataframes for each scenario
+scenario_dataframes = []
 
-            # Create a DataFrame for the current seed
-            seed_df = pd.DataFrame({'Seed': [seed], 'Average_Time_In_Model': [average_time_per_truck]})
-            dfs.append(seed_df)
+for scenario in scenarios:
+    filename_duration = f'duration_scenario_{scenario}.csv'
+    filename_delay = f'delay_scenario_{scenario}.csv'
+    df_duration = pd.read_csv(filename_duration)
+    df_delay = pd.read_csv(filename_delay)
 
-    # Concatenate DataFrames for all seeds into one DataFrame for the current scenario
-    scenario_df = pd.concat(dfs, ignore_index=True)
+    unique_vehicle_ids_duration = set(df_duration['Unique_ID'])
 
-    # Calculate average time per truck for the current scenario
-    average_time_per_scenario = total_time_in_model / total_trucks if total_trucks > 0 else 0
-    l_average_model_time.append(average_time_per_scenario)
+    filtered_delay_df = df_delay[df_delay['Vehicle_ID'].isin(unique_vehicle_ids_duration)]
 
-    # Save the DataFrame to a CSV file for the current scenario
-    scenario_df.to_csv(f'scenario_{scenario}.csv', index=False)
+    scenario_dataframes.append(filtered_delay_df)
 
-# Plot the average time per truck for each scenario
-plt.figure(figsize=(10, 6))
-plt.bar(range(len(l_average_model_time)), l_average_model_time)
-plt.title('Average Time in Model per Truck for Each Scenario')
-plt.xlabel('Scenario')
-plt.ylabel('Average Time in Model per Truck')
-plt.xticks(range(len(l_average_model_time)), [0, 1, 2, 3, 4])  # Assuming scenarios are numbered from 0 to 5
-plt.grid(False)
-plt.show()
+# Concatenate dataframes from all scenarios
+delays_total_df = pd.concat(scenario_dataframes, ignore_index=True)
 
-# Print a message indicating the process is finished
+delays_total_df.to_csv('delays_total.csv', index=False)
+
+dfs_dict = {}
+for scenario in range(1, 5):
+    file_name = f'duration_scenario_{scenario}.csv'
+    df = pd.read_csv(file_name)
+    dfs_dict[scenario] = df
+
+average_durations = {}
+for scenario, df in dfs_dict.items():
+    if 'Time_In_Model' in df:
+        average_duration = df['Time_In_Model'].mean()
+        average_durations[scenario] = average_duration
+
+average_durations_df = pd.DataFrame(list(average_durations.items()), columns=['Scenario', 'Average_Duration'])
+average_durations_df.to_csv('average_driving_times.csv', index=False)
+
+# Calculate cumulative delays per scenario, per seed
+bridge_delay_dict = {}
+
+for scenario in scenarios:
+    filename_delay = f'delay_scenario_{scenario}.csv'
+    df_delay = pd.read_csv(filename_delay)
+
+    if not df_delay.empty:
+        for seed in seeds:
+            df_delay_seed = df_delay[df_delay['Seed'] == seed]
+            if not df_delay_seed.empty:
+                first_vehicle_delay = df_delay_seed.iloc[0]['Delay']  # Get delay of the first vehicle
+                bridge_delay_dict[(scenario, seed)] = first_vehicle_delay
+
+cumulative_delay_df = pd.DataFrame(list(bridge_delay_dict.items()), columns=['Scenario_Seed', 'Cumulative_Delay'])
+
+cumulative_delay_df.to_csv('cumulative_delay_per_scenario_per_seed.csv', index=False)
+
+# #Plot the average time per truck for each scenario
+# plt.figure(figsize=(10, 6))
+# plt.bar(range(len(l_average_model_time)), l_average_model_time)
+# plt.title('Average Time in Model per Truck for Each Scenario')
+# plt.xlabel('Scenario')
+# plt.ylabel('Average Time in Model per Truck')
+# plt.xticks(range(len(l_average_model_time)), [0, 1, 2, 3, 4])  # Assuming scenarios are numbered from 0 to 5
+# plt.grid(False)
+# plt.show()
+
+#Print a message indicating the process is finished
 print("CSV files for average time per truck per seed for each scenario have been created.")
