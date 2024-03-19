@@ -63,7 +63,7 @@ csv_file_sourcesink = 'sourcesink_roads.csv'
 df_sourcesinks.to_csv(csv_file_sourcesink, index=False)
 #print(f"CSV file '{csv_file_sourcesink}' has been created successfully.")
 
-#Step 2: we scrape data from html files with the lrps of the roads to find the intersections of roads
+#Step 3: we scrape data from html files with the lrps of the roads to find the intersections of roads
 # import the html file with the road descriptions. Everything is done for N1 and N2
 file_path_N1 = 'N1.lrps.htm'
 file_path_N2 = 'N2.lrps.htm'
@@ -114,7 +114,7 @@ for index, row in filtered_df_length.iterrows():
             filtered_rows.append(matching_rows_N2)
 
 
-Define a function to add "N1" or "N2" to the road name
+# Define a function to add "N1" or "N2" to the road name
 def add_road_name(row):
     if row.name < 5:
         return 'N1'
@@ -124,14 +124,13 @@ def add_road_name(row):
 # Apply the function to create the new column
 filtered_df['road_name2'] = filtered_df.apply(lambda row: add_road_name(row), axis=1)
 
-filtered_df
-
 # Concatenate the filtered rows into a single DataFrame
 filtered_df = pd.concat(filtered_rows, ignore_index=True)
 
 # Get unique road names from filtered_df
 filtered_road_names = filtered_df['road name'].unique()
 
+#part of step 2
 # Filter df_sourcesinks to contain only roads present in filtered_df
 filtered_sourcesinks = df_sourcesinks[df_sourcesinks['road'].isin(filtered_road_names)]
 
@@ -249,5 +248,3 @@ print(f"CSV file '{csv_file_merged}' has been created successfully.")
 # csv_file_path_N1 = 'transformed_data_N1.csv'
 # new_df_bridge.to_csv(csv_file_path_N1, index=False)
 # print(f"CSV file '{csv_file_path_N1}' has been created successfully.")
-
-print("Hoi Suus")
