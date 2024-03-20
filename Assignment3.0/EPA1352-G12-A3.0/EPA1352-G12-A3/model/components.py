@@ -128,7 +128,7 @@ class Sink(Infra):
     def remove(self, vehicle):
         self.model.schedule.remove(vehicle)
         self.vehicle_removed_toggle = not self.vehicle_removed_toggle
-        print(str(self) + ' REMOVE ' + str(vehicle))
+        # print(str(self) + ' REMOVE ' + str(vehicle))
 
 
 # ---------------------------------------------------------------
@@ -175,7 +175,7 @@ class Source(Infra):
                 Source.truck_counter += 1
                 self.vehicle_count += 1
                 self.vehicle_generated_flag = True
-                print(str(self) + " GENERATE " + str(agent))
+                #print(str(self) + " GENERATE " + str(agent))
         except Exception as e:
             print("Oops!", e.__class__, "occurred.")
 
@@ -290,7 +290,7 @@ class Vehicle(Agent):
         """
         To print the vehicle trajectory at each step
         """
-        print(self)
+        #print(self)
 
     def drive(self):
 
@@ -321,7 +321,6 @@ class Vehicle(Agent):
             self.removed_at_step = self.model.schedule.steps
             self.time_in_model = self.removed_at_step - self.generated_at_step
             Vehicle.vehicle_durations.append({'Unique_ID': self.unique_id, 'Time_In_Model': self.time_in_model})
-            #print(vehicle_durations)
             self.location.remove(self)
             return
 
@@ -352,7 +351,7 @@ class Vehicle(Agent):
         self.location_offset = location_offset
         self.location.vehicle_count += 1
 
-    def create_dataframe():
+    def create_average_time_dataframe():
         """
         Create a DataFrame to record vehicle duration and bridge delay time.
         """
