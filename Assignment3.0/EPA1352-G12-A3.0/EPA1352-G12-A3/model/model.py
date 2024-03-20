@@ -167,7 +167,7 @@ class BangladeshModel(Model):
 
 
 
-        print('path ids dict', self.path_ids_dict)
+        # print('path ids dict', self.path_ids_dict)
 
         # put back to df with selected roads so that min and max and be easily calculated
         df = pd.concat(df_objects_all)

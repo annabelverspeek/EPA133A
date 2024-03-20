@@ -22,6 +22,6 @@ N2,1000006,intersection,NaN,,6,6,20
 N2,1000020,link,NaN,,7,5,1400
 N2,1000021,bridge,A,,8,4,4
 N2,1000022,link,NaN,,9,3,2500
-N2,1000023,bridge,B,,10,2,500
+N2,1000023,bridge,B,,10,2,5000
 N2,1000024,link,NaN,,11,1,800
 N2,1000025,sourcesink,,SoSi4,12,0,20
