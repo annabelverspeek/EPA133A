@@ -96,7 +96,7 @@ filtered_df['road2'] = filtered_df.apply(lambda row: add_road_name(row), axis=1)
 
 # Concatenate the filtered rows into a single DataFrame
 filtered_df = pd.concat(filtered_rows, ignore_index=True)
-print(filtered_df.columns)
+#print(filtered_df.columns)
 # Get unique road names from filtered_df
 filtered_road_names = filtered_df['road name'].unique()
 # print(filtered_road_names)
@@ -145,7 +145,7 @@ for road in selected_roads:
 df_sourcesinks['model_type'] = 'sourcesink'
 # werkt nog niet, later kijken hoe we alles SoSi + nummer kunnen geven
 
-print(df_sourcesinks)
+#print(df_sourcesinks)
 
 # #kan later weg, nu nog even niet
 # # we create an empty list to store the sources and sinks
@@ -254,9 +254,9 @@ df_merge_final = df_merge_final.groupby('road').apply(lambda x: x.sort_values(by
 
 csv_file_merged = 'merged.csv'
 df_merge_final.to_csv(csv_file_merged, index=False)
-print(f"CSV file '{csv_file_merged}' has been created successfully.")
+#print(f"CSV file '{csv_file_merged}' has been created successfully.")
 
-print(filtered_df)
+#print(filtered_df)
 # later toevoegen --> SoSi namen bij sourcesink
 
 filtered_df_copy = filtered_df.copy()
@@ -267,8 +267,8 @@ filtered_df_copy = filtered_df_copy.rename(columns={'road name2':'road','road':'
 
 def update_chainage(row, sourcesinks):
     # Get the latitude and longitude of the intersection
-    intersection_lat = row['lat']
-    intersection_lon = row['lon']
+    intersection_lat = float(row['lat'])
+    intersection_lon = float(row['lon'])
 
     # Initialize variables to store the closest sourcesinks
     closest_sourcesink_beginning = None
@@ -279,10 +279,13 @@ def update_chainage(row, sourcesinks):
     min_distance_ending = float('inf')
 
     # Iterate over sourcesinks to find the closest ones
-    for index, sourcesink in df_sourcesinks.iterrows():
-        sourcesink_lat = df_sourcesinks['lat']
-        sourcesink_lon = df_sourcesinks['lon']
+    # Iterate over sourcesinks to find the closest ones
+    for index, sourcesink in sourcesinks.iterrows():
+        sourcesink_lat = float(sourcesink['lat'])  # Convert to float
+        sourcesink_lon = float(sourcesink['lon'])  # Convert to float
         distance = ((intersection_lat - sourcesink_lat) ** 2 + (intersection_lon - sourcesink_lon) ** 2) ** 0.5
+
+        # Rest of your code...
 
         # Check if the sourcesink represents the beginning (chainage = 0) or the ending (chainage > 0) of the road
         if sourcesink['chainage'] == 0:
@@ -309,6 +312,18 @@ def update_chainage(row, sourcesinks):
 # Example of how to use update_chainage function
 filtered_df_copy['chainage'] = filtered_df_copy.apply(update_chainage, args=(df_sourcesinks,), axis=1)
 print(filtered_df_copy)
+
+df_merge_final2 = pd.concat([df_merge_final, filtered_df_copy], ignore_index=True)
+
+# Sort the DataFrame by 'road' column
+df_merge_final2 = df_merge_final2.sort_values(by='road')
+
+# Then, sort by 'chainage' within each 'road' group
+df_merge_final2 = df_merge_final2.groupby('road').apply(lambda x: x.sort_values(by='chainage')).reset_index(drop=True)
+print(df_merge_final2)
+csv_file_merged2 = 'merged2.csv'
+df_merge_final2.to_csv(csv_file_merged2, index=False)
+
 #Step 5: merging intersections with bridges
 # def find_nearest_row_indices(filtered_df_copy, df_merge_final):
 #     distances = cdist(filtered_df_copy[['lat', 'lon']], df_merge_final[['lat', 'lon']], metric='euclidean')
