@@ -280,8 +280,8 @@ def update_chainage(row, sourcesinks):
 
     # Iterate over sourcesinks to find the closest ones
     for index, sourcesink in df_sourcesinks.iterrows():
-        sourcesink_lat = sourcesink['lat']
-        sourcesink_lon = sourcesink['lon']
+        sourcesink_lat = df_sourcesinks['lat']
+        sourcesink_lon = df_sourcesinks['lon']
         distance = ((intersection_lat - sourcesink_lat) ** 2 + (intersection_lon - sourcesink_lon) ** 2) ** 0.5
 
         # Check if the sourcesink represents the beginning (chainage = 0) or the ending (chainage > 0) of the road
@@ -308,8 +308,7 @@ def update_chainage(row, sourcesinks):
 
 # Example of how to use update_chainage function
 filtered_df_copy['chainage'] = filtered_df_copy.apply(update_chainage, args=(df_sourcesinks,), axis=1)
-,), axis=1)
-
+print(filtered_df_copy)
 #Step 5: merging intersections with bridges
 # def find_nearest_row_indices(filtered_df_copy, df_merge_final):
 #     distances = cdist(filtered_df_copy[['lat', 'lon']], df_merge_final[['lat', 'lon']], metric='euclidean')
