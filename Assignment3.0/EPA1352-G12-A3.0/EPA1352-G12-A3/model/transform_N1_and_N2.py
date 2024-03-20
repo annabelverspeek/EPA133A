@@ -1,24 +1,29 @@
+#importing the needed libraries
 import pandas as pd
 import numpy as np
 from scipy.spatial.distance import cdist
 
+#########
+##STEP1##
+#########
 # Step 1: filtering on rows that are longer than 25 km.
-# Import the data of the overview of all roads
+# for the filtering on length we use the _overview file
 Overview_file = '_overview.xlsx'
 Overview = pd.read_excel(Overview_file)
 
 # we are starting with filtering which roads are longer than 25 km
 filtered_df_length = Overview[Overview['length'] >= 25]
 
-# step 2 placed under step 3 --> will change order later: Anna
-
-#Step 3: we scrape data from html files with the lrps of the roads to find the intersections of roads
+#########
+##STEP2##
+#########
+#Step 2: we scrape data from html files with the lrps of the roads to find the intersections of roads
 # import the html file with the road descriptions. Everything is done for N1 and N2
 file_path_N1 = 'N1.lrps.htm'
 file_path_N2 = 'N2.lrps.htm'
 df_list_N1 = pd.read_html(file_path_N1)
 df_list_N2 = pd.read_html(file_path_N2)
-# create a dataframe from the html file, the table is the fourth element in the html list
+# we create a dataframe from the html file, the table is the fourth element in the html list
 df_N1 = df_list_N1[4]
 df_N2 = df_list_N2[4]
 
@@ -83,7 +88,6 @@ rows_to_swap_swapped['road name2'] = 'N2'
 # Concatenate filtered_df with the duplicated and swapped rows
 filtered_df_combined = pd.concat([filtered_df, rows_to_swap_swapped], ignore_index=True)
 
-
 # # Define a function to add "N1" or "N2" to the road name
 def add_road_name(row):
     if row.name < 5:
@@ -101,27 +105,22 @@ filtered_df = pd.concat(filtered_rows, ignore_index=True)
 filtered_road_names = filtered_df['road name'].unique()
 # print(filtered_road_names)
 
-
+#making sure the filtered dataframe has the correct columns for the merging later
 filtered_df = filtered_df.rename(columns={'Latitude Decimal':'lat', 'Longitued Decimal':'lon','Road Chainage': 'chainage','road name':'road'})
 columns = ['road', 'road name2', 'model_type', 'condition', 'name', 'lat', 'lon', 'length','chainage']
 filtered_df = filtered_df.reindex(columns=columns)
 filtered_df = filtered_df.drop_duplicates(subset=['chainage'])
 filtered_df['model_type'] = 'intersection'
-#print(filtered_df)
 
+#########
+##STEP3##
+#########
+# Step 3: we find the sourcesinks for all filtered roads in Bangladesh
 # Read the csv file of roads that contain all lrps of the road
 csv_file = '_roads3.csv'
 df_roads = pd.read_csv(csv_file, sep=',')
-#print(df_roads.head(10))
 
-#Step 2: defining the sources and sinks of all roads in Bangladesh.
-
-# Assuming df_all_points contains all points of multiple roads
-# and selected_roads_df contains the roads you have selected in another dataframe
-
-# Step 1: Filter points for selected roads
-
-# Initialize an empty DataFrame to store the results
+# Initialize an empty DataFrame to store the results with the right columns
 df_sourcesinks = pd.DataFrame(columns=['road', 'model_type', 'name', 'lat', 'lon', 'chainage'])
 df_roads = df_roads.rename(columns={'type':'model_type'})
 df_roads = df_roads.reindex(columns=columns)
@@ -147,63 +146,10 @@ df_sourcesinks['model_type'] = 'sourcesink'
 
 #print(df_sourcesinks)
 
-# #kan later weg, nu nog even niet
-# # we create an empty list to store the sources and sinks
-# data = []
-#
-# counter = 1
-#
-# # Iterate over each unique road
-# for road in df_roads['road'].unique():
-#     road_data = df_roads[df_roads['road'] == road]
-#
-#     # Extract the first LRP from the first row with the data needed to be the same format as the demo file
-#     road_row = road_data.iloc[0]
-#     data.append({
-#         'road': road_row['road'],
-#         'model_type': 'sourcesink',
-#         'name': f'SoSi{counter}',
-#         'lat': road_row['lat1'],
-#         'lon': road_row['lon1']
-#     })
-#     counter += 1
-#
-#     # we select the last column of each road. Because not every road has the same amount of LRPs,
-#     # we find the last column that contains a value for each road. This is being found by skipping 3 steps every time to find the lon value
-#     last_col_id = len(road_row)-1
-#     i = last_col_id
-#     for i in range(last_col_id, 0, -3):
-#         if pd.notnull(road_row[i]) and pd.notnull(road_row[i-1]):        # THEN , IF NT NONE:
-#             data.append({
-#                 'road': road_row['road'],
-#                 'model_type': 'sourcesink',
-#                 'name': f'SoSi{counter}',
-#                 'lat': road_row[i-1],
-#                 'lon': road_row[i]
-#             })
-#             counter += 1
-#             break
-#
-# # we create a DataFrame from collected data
-# df_sourcesinks = pd.DataFrame(data)
-# #print(df_sourcesinks.head(30))
-#
-# #part of step 2
-# # Filter df_sourcesinks to contain only roads present in filtered_df
-# filtered_sourcesinks = df_sourcesinks[df_sourcesinks['road'].isin(filtered_road_names)]
-#
-# filtered_sourcesinks['name'] = ['SoSi' + str(i) for i in range(1, len(filtered_sourcesinks) + 1)]
-
-# #make csv of filtered sources and sinks
-# csv_file_sourcesink_filtered = 'sourcesink_roads_filtered.csv'
-# filtered_sourcesinks.to_csv(csv_file_sourcesink_filtered, index=False)
-# print(f"CSV file '{csv_file_sourcesink_filtered}' has been created successfully.")
-
-#print(filtered_sourcesinks.head(16))
-
-############################
-##MERGE TO FINAL DATAFRAME##
-############################
+#########
+##STEP4##
+#########
+# Step 4: prepare the dataframe for the bridges
 
 # the cleaned bridges dataset is imported
 excel_file_bridge = 'BMMS_overview.xlsx'
@@ -212,35 +158,33 @@ df_bridge = pd.read_excel(excel_file_bridge)
 # a new dataframe is created to store the filtered bridges
 filtered_bridges = pd.DataFrame(columns=['road', 'model_type', 'condition', 'name', 'lat', 'lon', 'length','chainage'])
 
-# Filter data for the roads found in filtered_sourcesinks.
+# Filter data for the roads found in df_sourcesinks.
 for road_name in df_sourcesinks['road'].unique():
     bridges_to_filter = df_bridge[df_bridge['road'] == road_name]
     filtered_bridges = pd.concat([filtered_bridges, bridges_to_filter], ignore_index=True)
 
 filtered_bridges = filtered_bridges[['road', 'model_type', 'condition', 'name', 'lat', 'lon', 'length', 'chainage']]
 
-
 # removing double values for the bridges. Same latitudes and longitudes measured twice. Values with shortest length remain.
 # the duplicates are removed so lengths of bridges are not counted double.
 filtered_bridges = filtered_bridges.sort_values('length')
-filtered_bridges = filtered_bridges.drop_duplicates(subset=['lat', 'lon'], keep='last')
+filtered_bridges = filtered_bridges.drop_duplicates(subset=['chainage'], keep='last')
 filtered_bridges = filtered_bridges.sort_values(by=['road','chainage'])
 filtered_bridges['model_type'] = 'bridge'
 
-# csv_file_bridges = 'bridges.csv'
-# filtered_bridges.to_csv(csv_file_bridges, index=False)
-# print(f"CSV file '{csv_file_bridges}' has been created successfully.")
-
-#Step 4: merging the bridges with the sources and sinks
+#########
+##STEP5##
+#########
+#Step 5: merging the bridges with the sources and sinks
 columns = ['road', 'model_type', 'condition', 'name', 'lat', 'lon', 'length','chainage']
 df_sourcesinks = df_sourcesinks.reindex(columns=columns)
 
+# after merging, the dataframes are sorted on road and then on chainage
 df_merge = pd.concat([filtered_bridges, df_sourcesinks], ignore_index=True)
 df_merge = df_merge.sort_values(by=['road','chainage'])
 
 filtered_df = filtered_df.rename(columns={'road':'road name2', 'road name2':'road'})
 
-# Sort the DataFrame by 'road' column
 df_merge_final = pd.concat([df_merge, filtered_df], ignore_index=True)
 
 # Convert 'chainage' column to numeric data type
@@ -252,19 +196,19 @@ df_merge_final = df_merge_final.sort_values(by='road')
 # Then, sort by 'chainage' within each 'road' group
 df_merge_final = df_merge_final.groupby('road').apply(lambda x: x.sort_values(by='chainage')).reset_index(drop=True)
 
-csv_file_merged = 'merged.csv'
-df_merge_final.to_csv(csv_file_merged, index=False)
-#print(f"CSV file '{csv_file_merged}' has been created successfully.")
-
-#print(filtered_df)
+#print(df_merge_final)
 # later toevoegen --> SoSi namen bij sourcesink
 
+#########
+##STEP6##
+#########
+#Step 6: all intersections are duplicated for all roads except N1 and N2. (further explained in report)
 filtered_df_copy = filtered_df.copy()
 filtered_df_copy = filtered_df_copy[~filtered_df_copy['road name2'].isin(['N1', 'N2'])]
 
 # Rename the columns
 filtered_df_copy = filtered_df_copy.rename(columns={'road name2':'road','road':'road name2'})
-
+#the chainages are selected based on whether the intersection is after the beginning or end of the road
 def update_chainage(row, sourcesinks):
     # Get the latitude and longitude of the intersection
     intersection_lat = float(row['lat'])
@@ -279,13 +223,10 @@ def update_chainage(row, sourcesinks):
     min_distance_ending = float('inf')
 
     # Iterate over sourcesinks to find the closest ones
-    # Iterate over sourcesinks to find the closest ones
     for index, sourcesink in sourcesinks.iterrows():
         sourcesink_lat = float(sourcesink['lat'])  # Convert to float
         sourcesink_lon = float(sourcesink['lon'])  # Convert to float
         distance = ((intersection_lat - sourcesink_lat) ** 2 + (intersection_lon - sourcesink_lon) ** 2) ** 0.5
-
-        # Rest of your code...
 
         # Check if the sourcesink represents the beginning (chainage = 0) or the ending (chainage > 0) of the road
         if sourcesink['chainage'] == 0:
@@ -309,10 +250,11 @@ def update_chainage(row, sourcesinks):
 
     return new_chainage
 
-# Example of how to use update_chainage function
+# use update_chainage function
 filtered_df_copy['chainage'] = filtered_df_copy.apply(update_chainage, args=(df_sourcesinks,), axis=1)
-print(filtered_df_copy)
+#print(filtered_df_copy)
 
+#the intersections are now from both roads it is intersecting. Merged with previous dataframe
 df_merge_final2 = pd.concat([df_merge_final, filtered_df_copy], ignore_index=True)
 
 # Sort the DataFrame by 'road' column
@@ -321,87 +263,100 @@ df_merge_final2 = df_merge_final2.sort_values(by='road')
 # do a check to see whether N1 and N2 have intersections with chainage 0 and make sure they will be placed after the sourcesinks:
 df_merge_final2.loc[(df_merge_final2['model_type'] == 'intersection') & (df_merge_final2['road'].isin(['N1', 'N2'])) & (df_merge_final2['chainage'] == 0), 'chainage'] = 0.1
 
-
 # Then, sort by 'chainage' within each 'road' group
 df_merge_final2 = df_merge_final2.groupby('road').apply(lambda x: x.sort_values(by='chainage')).reset_index(drop=True)
-print(df_merge_final2)
-csv_file_merged2 = 'merged2.csv'
-df_merge_final2.to_csv(csv_file_merged2, index=False)
+#print(df_merge_final2)
 
-#Step 5: merging intersections with bridges
-# def find_nearest_row_indices(filtered_df_copy, df_merge_final):
-#     distances = cdist(filtered_df_copy[['lat', 'lon']], df_merge_final[['lat', 'lon']], metric='euclidean')
-#     nearest_indices = np.argmin(distances, axis=1)
-#     return nearest_indices
-#
-# def together(filtered_df_copy, df_merge_final):
-#     nearest_indices = find_nearest_row_indices(filtered_df_copy, df_merge_final)
-#     filtered_df_copy['nearest_index'] = nearest_indices
-#     together = pd.merge(filtered_df_copy, df_merge_final, left_on='nearest_index', right_index=True, suffixes=('', 'df_merged'))
-#     together.drop('nearest_index', axis=1, inplace=True)
-#     return together
-#
-# together(filtered_df_copy,df_merge_final)
-
-#### GIVING IDS TO EVERY BRIDGE + LINK #####
-#### TO ADD LATER ####
-# # print(df_bridge)
+#########
+##STEP7##
+##########
+#Step 7: links are added between all objects
 # # an empty list is created for data. This list will function as list to contain the information on the source, the bridges, the links and the sink of the analysis.
-# data = []
-#
-# # Initializing the variables. A counter is initialized so every source, bridge, link or sink has a unique id.
-# id_counter = 1000000
-# bridge_counter = 1  # Initialize bridge counter
-# link_chainage = 0    # Initialize link chainage
-#
-#
-# # append source. As source the beginning of the road in Dhaka has been defined with specified latitudes and longitudes:
-# data.append({'road': 'N1', 'id': id_counter, 'model_type': 'source', 'name': 'source', 'lat': 23.7060278, 'lon': 90.443333, 'length': 0, 'condition': np.nan})
-# id_counter += 1  # Otherwise similar id for the source and the first bridge!
-#
-# for index, row in df_bridge.iterrows():
-#     # Extract required attributes
-#     road = row['road']
-#     name = row['name']
-#     lat = row['lat']
-#     lon = row['lon']
-#     length = row['length']
-#     condition = row['condition']
-#
-#     chainage_str = str(row['chainage'])  # Convert chainage to string
-#     # we do the chainage times 1000 to go from meters to kilometers
-#     chainage = (float(chainage_str.replace(',', '.')))*1000  # Replace commas and convert to float
-#
-#     # Append links
-#     if index > 0:
-#         link_length = chainage - link_chainage  # Calculate the length of the link
-#         data.append(
-#             {'road': road, 'id': id_counter, 'model_type': 'link', 'name': f'link {index}', 'lat': lat,
-#              'lon': lon, 'length': link_length, 'condition': np.nan})
-#         id_counter += 1
-#         link_chainage = chainage  # Update link chainage after calculating link_length
-#
-#     # Append bridges. All types of bridges are taken along
-#     if row['type'] == 'PC Girder Bridge' or row['type'] == 'Box Culvert' or row['type'] == 'PC Box' or row['type'] == 'RCC Girder Bridge' or row['type'] == 'Slab Culvert' or row['type'] == 'Steel Beam & RCC Slab' or row['type'] == 'Arch Masonry' or row['type'] == 'RCC Bridge' or row['type'] == 'Baily with Steel Deck' or row['type'] == 'Truss with Steel Deck' or row['type'] == 'Truss with RCC Slab' or row['type'] == 'Baily with Timber Deck' or row['type'] == 'Pipe Culvert':  # Check if it's a bridge
-#         data.append({'road': road, 'id': id_counter, 'model_type': 'bridge', 'name': name, 'lat': lat, 'lon': lon, 'length': length, 'condition': condition})
-#         id_counter += 1
-#         bridge_counter += 1  # Increment bridge counter
-#
-#     # if the latitude of the bridges pass the latitude of the sink, the adding of bridges to data is stopped.
-#     if row['lat'] < 22.3314716:
-#         break
-#
-# # append sink to data
-# data.append({'road': 'N1', 'id': id_counter, 'model_type': 'sink', 'name': 'sink', 'lat': 22.3314716, 'lon': 91.8515556,
-#              'length': 0, 'condition': np.nan})
-# id_counter += 1
-#
-# # Convert the list of dictionaries into a DataFrame
-# new_df_bridge = pd.DataFrame(data)
-# # print(new_df_bridge.head(10))
-#
-#
-# # Write the transformed data into a new CSV file
-# csv_file_path_N1 = 'transformed_data_N1.csv'
-# new_df_bridge.to_csv(csv_file_path_N1, index=False)
-# print(f"CSV file '{csv_file_path_N1}' has been created successfully.")
+# Initialize an empty list to store the data for links
+link_data = []
+
+# Initialize variables to keep track of the previous chainage and model type
+prev_chainage = None
+prev_model_type = None
+
+# Iterate over each row in the merged DataFrame
+for index, row in df_merge_final2.iterrows():
+    # Extract required attributes
+    road = row['road']
+    model_type = row['model_type']
+    name = row['name']
+    lat = row['lat']
+    lon = row['lon']
+    chainage = row['chainage']
+
+    # Skip the first row
+    if index == 0:
+        prev_chainage = chainage
+        prev_model_type = model_type
+        continue
+
+    # Calculate the length of the link
+    link_length = chainage - prev_chainage
+
+    # Add link after sourcesink, bridge, or intersection
+    if prev_model_type in ['sourcesink', 'bridge', 'intersection']:
+        link_data.append({
+            'road': road,
+            'model_type': 'link',
+            'condition': np.nan,
+            'name': f'link_{index}',  # You can adjust this naming convention as needed
+            'lat': lat,  # Use lat of the next object
+            'lon': lon,  # Use lon of the next object
+            'length': link_length,
+            'chainage': prev_chainage  # Chainage of previous object
+        })
+
+    # Update previous chainage and model type
+    prev_chainage = chainage
+    prev_model_type = model_type
+
+# Convert the list of dictionaries into a DataFrame
+link_df = pd.DataFrame(link_data)
+
+# Concatenate the original DataFrame and the link DataFrame
+final_df_with_links = pd.concat([df_merge_final2, link_df], ignore_index=True)
+
+# Sort the DataFrame by 'road' column
+final_df_with_links = final_df_with_links.sort_values(by=['road', 'chainage'])
+
+#########
+##STEP8##
+#########
+#Step 8: all objects are given an ID
+
+# merged_file.drop(columns=['chainage'], inplace=True)
+
+def assign_id_counts(merged_file):
+    # Initialize ID count dictionary
+    id_counts = {}
+    current_id = 1000000
+
+    # Iterate over each row in the merged DataFrame
+    for index, row in merged_file.iterrows():
+        # Get the latitude and longitude from the current row
+        lat_lon = (row['lat'], row['lon'])
+
+        # Check if the lat_lon exists in the ID counts dictionary
+        if lat_lon not in id_counts:
+            # If not, assign a new ID count
+            id_counts[lat_lon] = current_id
+            current_id += 1
+
+        # Assign the ID count to the current row
+        merged_file.at[index, 'id_count'] = id_counts[lat_lon]
+
+    return merged_file
+
+# Call the function to assign ID counts to the merged DataFrame
+merged_file = assign_id_counts(final_df_with_links)
+
+# Display the DataFrame with ID counts
+#print(merged_file)
+
+csv_file_with_ids = 'final_df.csv'
+merged_file.to_csv(csv_file_with_ids, index=False)
