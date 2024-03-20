@@ -318,6 +318,10 @@ df_merge_final2 = pd.concat([df_merge_final, filtered_df_copy], ignore_index=Tru
 # Sort the DataFrame by 'road' column
 df_merge_final2 = df_merge_final2.sort_values(by='road')
 
+# do a check to see whether N1 and N2 have intersections with chainage 0 and make sure they will be placed after the sourcesinks:
+df_merge_final2.loc[(df_merge_final2['model_type'] == 'intersection') & (df_merge_final2['road'].isin(['N1', 'N2'])) & (df_merge_final2['chainage'] == 0), 'chainage'] = 0.1
+
+
 # Then, sort by 'chainage' within each 'road' group
 df_merge_final2 = df_merge_final2.groupby('road').apply(lambda x: x.sort_values(by='chainage')).reset_index(drop=True)
 print(df_merge_final2)
