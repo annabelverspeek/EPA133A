@@ -145,7 +145,6 @@ for road in selected_roads:
 
 df_sourcesinks['model_type'] = 'sourcesink'
 # werkt nog niet, later kijken hoe we alles SoSi + nummer kunnen geven
-
 # print(df_sourcesinks)
 
 #########
@@ -376,7 +375,7 @@ merged_file = merged_file.rename(columns={'id_count': 'id'})
 # Change column A's values to floats
 merged_file['id'] = merged_file['id'].astype(int)
 
-print(merged_file[merged_file['model_type'] == 'intersection'])
+#print(merged_file[merged_file['model_type'] == 'intersection'])
 
 # Display the DataFrame with ID counts
 # print(merged_file)
