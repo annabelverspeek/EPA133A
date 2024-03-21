@@ -76,7 +76,14 @@ for index, row in filtered_df_length.iterrows():
 filtered_df = pd.concat(filtered_rows, ignore_index=True)
 
 filtered_df = filtered_df.drop_duplicates(subset=['Road Chainage'])
-print(filtered_df)
+
+filtered_df.loc[5, 'road name'] = 'N105'
+filtered_df.loc[6, 'road name'] = 'N102'
+
+filtered_df = filtered_df.drop(index=4)
+
+#print(filtered_df)
+
 # Filter rows where "road name2" is "N1" and "road name" is "N2" in filtered_df
 rows_to_swap = filtered_df[(filtered_df['road name2'] == 'N1') & (filtered_df['road name'] == 'N2')]
 
@@ -90,6 +97,8 @@ filtered_df_combined = pd.concat([filtered_df, rows_to_swap_swapped], ignore_ind
 
 filtered_df_combined.loc[5, 'road name'] = 'N105'
 filtered_df_combined.loc[6, 'road name'] = 'N102'
+
+filtered_df_combined = filtered_df_combined.drop(index=4)
 
 #print(filtered_df_combined)
 
@@ -191,21 +200,9 @@ df_sourcesinks = df_sourcesinks.reindex(columns=columns)
 # after merging, the dataframes are sorted on road and then on chainage
 df_merge = pd.concat([filtered_bridges, df_sourcesinks], ignore_index=True)
 df_merge = df_merge.sort_values(by=['road', 'chainage'])
-
+#print(filtered_df)
 filtered_df = filtered_df.rename(columns={'road': 'road name2', 'road name2': 'road'})
 
-df_merge_final = pd.concat([df_merge, filtered_df], ignore_index=True)
-
-# Convert 'chainage' column to numeric data type
-df_merge_final['chainage'] = pd.to_numeric(df_merge_final['chainage'], errors='coerce')
-
-# Sort the DataFrame by 'road' column
-df_merge_final = df_merge_final.sort_values(by='road')
-
-# Then, sort by 'chainage' within each 'road' group
-df_merge_final = df_merge_final.groupby('road').apply(lambda x: x.sort_values(by='chainage')).reset_index(drop=True)
-
-# print(df_merge_final)
 # later toevoegen --> SoSi namen bij sourcesink
 
 #########
@@ -264,13 +261,34 @@ def update_chainage(row, sourcesinks):
 
 # use update_chainage function
 filtered_df_copy['chainage'] = filtered_df_copy.apply(update_chainage, args=(df_sourcesinks,), axis=1)
-# print(filtered_df_copy)
 
-# the intersections are now from both roads it is intersecting. Merged with previous dataframe
-df_merge_final2 = pd.concat([df_merge_final, filtered_df_copy], ignore_index=True)
+df_merge = pd.concat([df_merge, filtered_df], ignore_index=True)
+df_merge_final = pd.concat([df_merge, filtered_df_copy], ignore_index=True)
+
+# Convert 'chainage' column to numeric data type
+#all_intersections['chainage'] = all_intersections(all_intersections['chainage'], errors='coerce')
 
 # Sort the DataFrame by 'road' column
-df_merge_final2 = df_merge_final2.sort_values(by='road')
+df_merge_final = df_merge_final.sort_values(by='road')
+df_merge_final['lat'] = df_merge_final['lat'].astype(float)
+df_merge_final['lon'] = df_merge_final['lon'].astype(float)
+df_merge_final['chainage'] = df_merge_final['chainage'].astype(float)
+
+23.7060833	90.5215271
+
+23.7059167	90.5214438
+
+
+# Then, sort by 'chainage' within each 'road' group
+df_merge_final2 = df_merge_final.groupby('road').apply(lambda x: x.sort_values(by='chainage')).reset_index(drop=True)
+
+print(df_merge_final2)
+
+# the intersections are now from both roads it is intersecting. Merged with previous dataframe
+# df_merge_final2 = pd.concat([df_merge_final, filtered_df_copy], ignore_index=True)
+#
+# # Sort the DataFrame by 'road' column
+# df_merge_final2 = df_merge_final2.sort_values(by='road')
 
 # do a check to see whether N1 and N2 have intersections with chainage 0 and make sure they will be placed after the sourcesinks:
 df_merge_final2.loc[(df_merge_final2['model_type'] == 'intersection') & (df_merge_final2['road'].isin(['N1', 'N2'])) & (
