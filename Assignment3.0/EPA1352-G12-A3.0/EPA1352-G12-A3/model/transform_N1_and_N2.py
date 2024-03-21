@@ -270,14 +270,24 @@ df_merge_final = pd.concat([df_merge, filtered_df_copy], ignore_index=True)
 
 # Sort the DataFrame by 'road' column
 df_merge_final = df_merge_final.sort_values(by='road')
+
+# Given upper latitude and longitude values
+upper_lat = 23.7059167
+upper_lon = 90.5214438
+
+# Find the row where the upper latitude and longitude values exist
+rows_to_update = df_merge_final[(df_merge_final['lat'] == upper_lat) & (df_merge_final['lon'] == upper_lon)].index
+
+# If rows are found, update the values with the lower latitude and longitude
+if not rows_to_update.empty:
+    lower_lat = 23.7060833
+    lower_lon = 90.5215271
+    df_merge_final.loc[rows_to_update, ['lat', 'lon']] = lower_lat, lower_lon
+
+
 df_merge_final['lat'] = df_merge_final['lat'].astype(float)
 df_merge_final['lon'] = df_merge_final['lon'].astype(float)
 df_merge_final['chainage'] = df_merge_final['chainage'].astype(float)
-
-23.7060833	90.5215271
-
-23.7059167	90.5214438
-
 
 # Then, sort by 'chainage' within each 'road' group
 df_merge_final2 = df_merge_final.groupby('road').apply(lambda x: x.sort_values(by='chainage')).reset_index(drop=True)
