@@ -278,12 +278,12 @@ df_merge_final2 = df_merge_final2.groupby('road').apply(lambda x: x.sort_values(
 # Step 7: links are added between all objects
 # # an empty list is created for data. This list will function as list to contain the information on the source, the bridges, the links and the sink of the analysis.
 # Initialize an empty list to store the data for links
-# Initialize an empty list to store the data for links
 link_data = []
 
-# Initialize variables to keep track of the previous chainage and model type
+# Initialize variables to keep track of the previous chainage, model type, and object type
 prev_chainage = None
 prev_model_type = None
+prev_object_type = None
 
 # Iterate over each row in the merged DataFrame
 for index, row in df_merge_final2.iterrows():
@@ -310,9 +310,16 @@ for index, row in df_merge_final2.iterrows():
     prev_is_sourcesink = prev_model_type == 'sourcesink'
     prev_is_intersection = prev_model_type == 'intersection'
 
+    # Determine the object type of the current row
+    if is_sourcesink or is_intersection:
+        object_type = 'sourcesink_or_intersection'
+    else:
+        object_type = 'other'
+
     # Check if conditions for excluding a link are met
-    if (is_sourcesink and prev_is_intersection) or (is_sourcesink and prev_is_sourcesink):
-        # Exclude link creation between sourcesink and intersection or between consecutive sourcesinks
+    if (is_sourcesink and prev_is_intersection) or (is_sourcesink and prev_is_sourcesink) or \
+            (prev_object_type == 'sourcesink_or_intersection' and object_type == 'sourcesink_or_intersection'):
+        # Exclude link creation between sourcesink and intersection, and between consecutive sourcesinks
         pass
     else:
         # Add link after sourcesink, bridge, or intersection
@@ -328,9 +335,10 @@ for index, row in df_merge_final2.iterrows():
                 'chainage': prev_chainage  # Chainage of previous object
             })
 
-    # Update previous chainage and model type
+    # Update previous chainage, model type, and object type
     prev_chainage = chainage
     prev_model_type = model_type
+    prev_object_type = object_type
 
 # Convert the list of dictionaries into a DataFrame
 link_df = pd.DataFrame(link_data)
@@ -340,6 +348,7 @@ final_df_with_links = pd.concat([df_merge_final2, link_df], ignore_index=True)
 
 # Sort the DataFrame by 'road' column
 final_df_with_links = final_df_with_links.sort_values(by=['road', 'chainage'])
+
 
 #########
 ##STEP8##
