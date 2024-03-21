@@ -87,7 +87,7 @@ rows_to_swap_swapped['road name2'] = 'N2'
 
 # Concatenate filtered_df with the duplicated and swapped rows
 filtered_df_combined = pd.concat([filtered_df, rows_to_swap_swapped], ignore_index=True)
-print(filtered_df_combined)
+#print(filtered_df_combined)
 
 csv_file_combined = 'combined.csv'
 filtered_df_combined.to_csv(csv_file_combined, index=False)
@@ -149,7 +149,7 @@ for road in selected_roads:
 
 df_sourcesinks['model_type'] = 'sourcesink'
 # werkt nog niet, later kijken hoe we alles SoSi + nummer kunnen geven
-# print(df_sourcesinks)
+#print(df_sourcesinks)
 
 #########
 ##STEP4##
