@@ -278,6 +278,7 @@ df_merge_final2 = df_merge_final2.groupby('road').apply(lambda x: x.sort_values(
 # Step 7: links are added between all objects
 # # an empty list is created for data. This list will function as list to contain the information on the source, the bridges, the links and the sink of the analysis.
 # Initialize an empty list to store the data for links
+# Initialize an empty list to store the data for links
 link_data = []
 
 # Initialize variables to keep track of the previous chainage and model type
@@ -303,18 +304,29 @@ for index, row in df_merge_final2.iterrows():
     # Calculate the length of the link
     link_length = chainage - prev_chainage
 
-    # Add link after sourcesink, bridge, or intersection
-    if prev_model_type in ['sourcesink', 'bridge', 'intersection']:
-        link_data.append({
-            'road': road,
-            'model_type': 'link',
-            'condition': np.nan,
-            'name': f'link_{index}',  # You can adjust this naming convention as needed
-            'lat': lat,  # Use lat of the next object
-            'lon': lon,  # Use lon of the next object
-            'length': link_length,
-            'chainage': prev_chainage  # Chainage of previous object
-        })
+    # Check if the current and previous objects are sourcesinks or intersections
+    is_sourcesink = model_type == 'sourcesink'
+    is_intersection = model_type == 'intersection'
+    prev_is_sourcesink = prev_model_type == 'sourcesink'
+    prev_is_intersection = prev_model_type == 'intersection'
+
+    # Check if conditions for excluding a link are met
+    if (is_sourcesink and prev_is_intersection) or (is_sourcesink and prev_is_sourcesink):
+        # Exclude link creation between sourcesink and intersection or between consecutive sourcesinks
+        pass
+    else:
+        # Add link after sourcesink, bridge, or intersection
+        if prev_model_type in ['sourcesink', 'bridge', 'intersection']:
+            link_data.append({
+                'road': road,
+                'model_type': 'link',
+                'condition': np.nan,
+                'name': f'link_{index}',  # You can adjust this naming convention as needed
+                'lat': lat,  # Use lat of the next object
+                'lon': lon,  # Use lon of the next object
+                'length': link_length,
+                'chainage': prev_chainage  # Chainage of previous object
+            })
 
     # Update previous chainage and model type
     prev_chainage = chainage
@@ -329,13 +341,14 @@ final_df_with_links = pd.concat([df_merge_final2, link_df], ignore_index=True)
 # Sort the DataFrame by 'road' column
 final_df_with_links = final_df_with_links.sort_values(by=['road', 'chainage'])
 
-
 #########
 ##STEP8##
 #########
 # Step 8: all objects are given an ID
 
 # merged_file.drop(columns=['chainage'], inplace=True)
+final_df_with_links['lat'] = final_df_with_links['lat'].astype(float)
+final_df_with_links['lon'] = final_df_with_links['lon'].astype(float)
 
 def assign_id_counts(merged_file):
     # Initialize ID count dictionary
@@ -344,35 +357,40 @@ def assign_id_counts(merged_file):
 
     # Iterate over each row in the merged DataFrame
     for index, row in merged_file.iterrows():
-        # Get the model type
+        # Get the model type and latitude, longitude
         model_type = row['model_type']
+        lat_lon = (round(row['lat'], 3), round(row['lon'], 3))  # Round to 3 decimal places
 
-        # Check if the current object is an intersection
-        if model_type == 'intersection':
-            # If it's an intersection, we consider assigning a new ID
-            lat_lon = (row['lat'], row['lon'])
+        # Check if the current object is an intersection or sourcesink
+        if model_type in ['intersection', 'sourcesink']:
+            # If it's an intersection or sourcesink, check if there's a similar lat_lon in the ID counts dictionary
+            existing_id = None
+            for key in id_counts.keys():
+                if abs(key[0] - lat_lon[0]) < 0.001 and abs(key[1] - lat_lon[1]) < 0.001:
+                    existing_id = id_counts[key]
+                    break
 
-            # Check if the lat_lon exists in the ID counts dictionary
-            if lat_lon not in id_counts:
+            if existing_id is not None:
+                # If similar lat_lon exists, assign the existing ID to the current row
+                merged_file.at[index, 'id_count'] = int(existing_id)
+            else:
                 # If not, assign a new ID count
                 id_counts[lat_lon] = current_id
                 current_id += 1
-
-            # Assign the ID count to the current row
-            merged_file.at[index, 'id_count'] = int(id_counts[lat_lon])
+                # Assign the ID count to the current row
+                merged_file.at[index, 'id_count'] = int(id_counts[lat_lon])
         else:
-            # For objects other than intersections, generate a unique ID based on the index
+            # For objects other than intersections and sourcesinks, generate a unique ID based on the index
             merged_file.at[index, 'id_count'] = int(current_id)
             current_id += 1
 
     return merged_file
 
-
 # Call the function to assign ID counts to the merged DataFrame
 merged_file = assign_id_counts(final_df_with_links)
 merged_file = merged_file.rename(columns={'id_count': 'id'})
 
-# Change column A's values to floats
+# making sure the ids are integers
 merged_file['id'] = merged_file['id'].astype(int)
 
 #print(merged_file[merged_file['model_type'] == 'intersection'])
@@ -382,3 +400,6 @@ merged_file['id'] = merged_file['id'].astype(int)
 
 csv_file_with_ids = 'final_df.csv'
 merged_file.to_csv(csv_file_with_ids, index=False)
+
+csv_file_intersections = 'intersections.csv'
+filtered_df.to_csv(csv_file_intersections, index=False)
