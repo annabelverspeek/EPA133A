@@ -87,6 +87,10 @@ rows_to_swap_swapped['road name2'] = 'N2'
 
 # Concatenate filtered_df with the duplicated and swapped rows
 filtered_df_combined = pd.concat([filtered_df, rows_to_swap_swapped], ignore_index=True)
+
+filtered_df_combined.loc[5, 'road name'] = 'N105'
+filtered_df_combined.loc[6, 'road name'] = 'N102'
+
 #print(filtered_df_combined)
 
 csv_file_combined = 'combined.csv'
