@@ -58,6 +58,7 @@ for index, row in filtered_df_length.iterrows():
             # Append the matching rows to the list
             filtered_rows.append(matching_rows_N1)
 
+
 # Iterate over each row in filtered_length for N2.
 for index, row in filtered_df_length.iterrows():
     road_name = row['road']
@@ -75,7 +76,7 @@ for index, row in filtered_df_length.iterrows():
 filtered_df = pd.concat(filtered_rows, ignore_index=True)
 
 filtered_df = filtered_df.drop_duplicates(subset=['Road Chainage'])
-
+print(filtered_df)
 # Filter rows where "road name2" is "N1" and "road name" is "N2" in filtered_df
 rows_to_swap = filtered_df[(filtered_df['road name2'] == 'N1') & (filtered_df['road name'] == 'N2')]
 
@@ -86,7 +87,10 @@ rows_to_swap_swapped['road name2'] = 'N2'
 
 # Concatenate filtered_df with the duplicated and swapped rows
 filtered_df_combined = pd.concat([filtered_df, rows_to_swap_swapped], ignore_index=True)
+print(filtered_df_combined)
 
+csv_file_combined = 'combined.csv'
+filtered_df_combined.to_csv(csv_file_combined, index=False)
 
 # # Define a function to add "N1" or "N2" to the road name
 def add_road_name(row):
@@ -371,7 +375,7 @@ def assign_id_counts(merged_file):
         lat_lon = (round(row['lat'], 3), round(row['lon'], 3))  # Round to 3 decimal places
 
         # Check if the current object is an intersection or sourcesink
-        if model_type in ['intersection', 'sourcesink']:
+        if model_type in ['intersection']:
             # If it's an intersection or sourcesink, check if there's a similar lat_lon in the ID counts dictionary
             existing_id = None
             for key in id_counts.keys():
