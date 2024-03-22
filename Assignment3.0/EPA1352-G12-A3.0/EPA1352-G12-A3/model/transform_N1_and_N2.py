@@ -77,10 +77,11 @@ filtered_df = pd.concat(filtered_rows, ignore_index=True)
 
 filtered_df = filtered_df.drop_duplicates(subset=['Road Chainage'])
 
-filtered_df.loc[5, 'road name'] = 'N105'
-filtered_df.loc[6, 'road name'] = 'N102'
+#manual changes are explained in the report
+# filtered_df.loc[5, 'road name'] = 'N105'
+# filtered_df.loc[6, 'road name'] = 'N102'
 
-filtered_df = filtered_df.drop(index=4)
+# filtered_df = filtered_df.drop(index=4)
 
 #print(filtered_df)
 
@@ -95,15 +96,13 @@ rows_to_swap_swapped['road name2'] = 'N2'
 # Concatenate filtered_df with the duplicated and swapped rows
 filtered_df_combined = pd.concat([filtered_df, rows_to_swap_swapped], ignore_index=True)
 
-filtered_df_combined.loc[5, 'road name'] = 'N105'
-filtered_df_combined.loc[6, 'road name'] = 'N102'
+#manual changes
+# filtered_df_combined.loc[5, 'road name'] = 'N105'
+# filtered_df_combined.loc[6, 'road name'] = 'N102'
 
-filtered_df_combined = filtered_df_combined.drop(index=4)
+# filtered_df_combined = filtered_df_combined.drop(index=4)
 
 #print(filtered_df_combined)
-
-csv_file_combined = 'combined.csv'
-filtered_df_combined.to_csv(csv_file_combined, index=False)
 
 # # Define a function to add "N1" or "N2" to the road name
 def add_road_name(row):
@@ -111,7 +110,6 @@ def add_road_name(row):
         return 'N1'
     else:
         return 'N2'
-
 
 # Apply the function to create the new column
 filtered_df['road2'] = filtered_df.apply(lambda row: add_road_name(row), axis=1)
@@ -161,7 +159,6 @@ for road in selected_roads:
     df_sourcesinks = pd.concat([df_sourcesinks, first_point, last_point], ignore_index=True)
 
 df_sourcesinks['model_type'] = 'sourcesink'
-# werkt nog niet, later kijken hoe we alles SoSi + nummer kunnen geven
 #print(df_sourcesinks)
 
 #########
@@ -203,8 +200,6 @@ df_merge = df_merge.sort_values(by=['road', 'chainage'])
 #print(filtered_df)
 filtered_df = filtered_df.rename(columns={'road': 'road name2', 'road name2': 'road'})
 
-# later toevoegen --> SoSi namen bij sourcesink
-
 #########
 ##STEP6##
 #########
@@ -214,7 +209,6 @@ filtered_df_copy = filtered_df_copy[~filtered_df_copy['road name2'].isin(['N1', 
 
 # Rename the columns
 filtered_df_copy = filtered_df_copy.rename(columns={'road name2': 'road', 'road': 'road name2'})
-
 
 # the chainages are selected based on whether the intersection is after the beginning or end of the road
 def update_chainage(row, sourcesinks):
@@ -238,12 +232,12 @@ def update_chainage(row, sourcesinks):
 
         # Check if the sourcesink represents the beginning (chainage = 0) or the ending (chainage > 0) of the road
         if sourcesink['chainage'] == 0:
-            # Sourcesink represents the beginning of the road
+            # Sourcesink for the beginning of the road
             if distance < min_distance_beginning:
                 min_distance_beginning = distance
                 closest_sourcesink_beginning = sourcesink
         else:
-            # Sourcesink represents the ending of the road
+            # Sourcesink for the ending of the road
             if distance < min_distance_ending:
                 min_distance_ending = distance
                 closest_sourcesink_ending = sourcesink
@@ -258,32 +252,29 @@ def update_chainage(row, sourcesinks):
 
     return new_chainage
 
-
-# use update_chainage function
+# use update_chainage function and make sure the chainage is match to the specific road of the intersection
 filtered_df_copy['chainage'] = filtered_df_copy.apply(update_chainage, args=(df_sourcesinks,), axis=1)
 
+#we merge the sourcesinks, bridges and intersections
 df_merge = pd.concat([df_merge, filtered_df], ignore_index=True)
 df_merge_final = pd.concat([df_merge, filtered_df_copy], ignore_index=True)
-
-# Convert 'chainage' column to numeric data type
-#all_intersections['chainage'] = all_intersections(all_intersections['chainage'], errors='coerce')
 
 # Sort the DataFrame by 'road' column
 df_merge_final = df_merge_final.sort_values(by='road')
 
-# Given upper latitude and longitude values
-upper_lat = 23.7059167
-upper_lon = 90.5214438
-
-# Find the row where the upper latitude and longitude values exist
-rows_to_update = df_merge_final[(df_merge_final['lat'] == upper_lat) & (df_merge_final['lon'] == upper_lon)].index
-
-# If rows are found, update the values with the lower latitude and longitude
-if not rows_to_update.empty:
-    lower_lat = 23.7060833
-    lower_lon = 90.5215271
-    df_merge_final.loc[rows_to_update, ['lat', 'lon']] = lower_lat, lower_lon
-
+#manual changes
+# # Given upper latitude and longitude values
+# upper_lat = 23.7059167
+# upper_lon = 90.5214438
+#
+# # Find the row where the upper latitude and longitude values exist
+# rows_to_update = df_merge_final[(df_merge_final['lat'] == upper_lat) & (df_merge_final['lon'] == upper_lon)].index
+#
+# # If rows are found, update the values with the lower latitude and longitude
+# if not rows_to_update.empty:
+#     lower_lat = 23.7060833
+#     lower_lon = 90.5215271
+#     df_merge_final.loc[rows_to_update, ['lat', 'lon']] = lower_lat, lower_lon
 
 df_merge_final['lat'] = df_merge_final['lat'].astype(float)
 df_merge_final['lon'] = df_merge_final['lon'].astype(float)
@@ -292,13 +283,7 @@ df_merge_final['chainage'] = df_merge_final['chainage'].astype(float)
 # Then, sort by 'chainage' within each 'road' group
 df_merge_final2 = df_merge_final.groupby('road').apply(lambda x: x.sort_values(by='chainage')).reset_index(drop=True)
 
-print(df_merge_final2)
-
-# the intersections are now from both roads it is intersecting. Merged with previous dataframe
-# df_merge_final2 = pd.concat([df_merge_final, filtered_df_copy], ignore_index=True)
-#
-# # Sort the DataFrame by 'road' column
-# df_merge_final2 = df_merge_final2.sort_values(by='road')
+#print(df_merge_final2)
 
 # do a check to see whether N1 and N2 have intersections with chainage 0 and make sure they will be placed after the sourcesinks:
 df_merge_final2.loc[(df_merge_final2['model_type'] == 'intersection') & (df_merge_final2['road'].isin(['N1', 'N2'])) & (
@@ -438,13 +423,10 @@ merged_file = merged_file.rename(columns={'id_count': 'id'})
 # making sure the ids are integers
 merged_file['id'] = merged_file['id'].astype(int)
 
-#print(merged_file[merged_file['model_type'] == 'intersection'])
-
-# Display the DataFrame with ID counts
-# print(merged_file)
-
+#the final dataframe
 csv_file_with_ids = 'final_df.csv'
 merged_file.to_csv(csv_file_with_ids, index=False)
 
+#the intersections
 csv_file_intersections = 'intersections.csv'
 filtered_df.to_csv(csv_file_intersections, index=False)
