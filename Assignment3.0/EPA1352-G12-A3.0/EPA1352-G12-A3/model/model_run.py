@@ -32,8 +32,8 @@ filename = 'scenario_0_seed_1_data.csv'
 df_to_save.to_csv(os.path.join(output_directory, filename), index=False)
 
 # Define scenarios and seeds
-scenarios = range(1, 5)
-seeds = range(1, 11)
+scenarios = [0] #range(1, 5)
+seeds = [111] # range(1, 11)
 
 # Run simulations for each scenario and seed
 for scenario in scenarios:

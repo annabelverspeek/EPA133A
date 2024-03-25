@@ -58,7 +58,7 @@ class BangladeshModel(Model):
 
     step_time = 1
 
-    file_name = '../data/final_df_manual3.csv'
+    file_name = '../model/final_df_manual5.csv'
 
     def __init__(self, seed=None, x_max=500, y_max=500, x_min=0, y_min=0, scenario = 0):
 
@@ -119,7 +119,7 @@ class BangladeshModel(Model):
             for i in range(len(road_df) - 1):
                 source = road_df.iloc[i]['id']
                 target = road_df.iloc[i + 1]['id']
-                weight = road_df.iloc[i]['length']  # Get length from the 'length' column
+                weight = road_df.iloc[i]['length']*1000  # Get length from the 'length' column
                 G.add_edge(source, target, weight=weight)
 
         # # Visualize the graph
@@ -129,6 +129,7 @@ class BangladeshModel(Model):
         # plt.show()
 
         return G
+
     def generate_model(self):
         """
         generate the simulation model according to the csv file component information
@@ -164,8 +165,6 @@ class BangladeshModel(Model):
                     path_ids = nx.shortest_path(G, source=road_source_id, target=road_sink_id, weight = 'length')
                     #path_ids = list(path_ids)
                     self.path_ids_dict[(road_source_id, road_sink_id)] = path_ids
-
-
 
         # print('path ids dict', self.path_ids_dict)
 
@@ -209,7 +208,7 @@ class BangladeshModel(Model):
                 elif model_type == 'bridge':
                     agent = Bridge(row['id'], self, row['length'], name, row['road'], row['condition'])
                 elif model_type == 'link':
-                    agent = Link(row['id'], self, row['length'], name, row['road'])
+                    agent = Link(row['id'], self, row['length']*1000, name, row['road'])
                 elif model_type == 'intersection':
                     if not row['id'] in self.schedule._agents:
                         agent = Intersection(row['id'], self, row['length'], name, row['road'])
