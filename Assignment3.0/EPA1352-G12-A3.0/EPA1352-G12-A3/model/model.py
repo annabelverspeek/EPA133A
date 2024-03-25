@@ -58,7 +58,7 @@ class BangladeshModel(Model):
 
     step_time = 1
 
-    file_name = '../model/final_df_manual5.csv'
+    file_name = '../model/final_df_manual7.csv'
 
     def __init__(self, seed=None, x_max=500, y_max=500, x_min=0, y_min=0, scenario = 0):
 
@@ -76,14 +76,17 @@ class BangladeshModel(Model):
 
         self.initialize_scenario(self.scenario)
 
-        # self.make_networkx()
-
         self.generate_model()
 
         Vehicle.vehicle_durations = []
         Vehicle.vehicle_delay = []
 
     def initialize_scenario(self, scenario):
+        """
+        This function is created to initialize the four scenarios.
+        cat_a_percent etc. is used in the function break_bridges in components.py.
+
+        """
         scenario_map = {
             0: (0.0, 0.0, 0.0, 0.0),
             1: (0.0, 0.0, 0.0, 0.05),
@@ -99,10 +102,11 @@ class BangladeshModel(Model):
 
         return self.cat_a_percent, self.cat_b_percent, self.cat_c_percent, self.cat_d_percent
 
-
-    # Assuming df is your DataFrame with similar structure
-    # Group by Road
     def make_networkx(self, file):
+        """
+        This function creates a networkx graph based on the file created in transform_n1_and_n2.
+        The graph is used to determine the shortest path for a given sink and source.
+        """
         df = pd.read_csv(file)
         # Create a directed graph
         G = nx.Graph()
@@ -122,10 +126,10 @@ class BangladeshModel(Model):
                 weight = road_df.iloc[i]['length']*1000  # Get length from the 'length' column
                 G.add_edge(source, target, weight=weight)
 
-        # # Visualize the graph
+        # Plot the networkx graph
         # pos = nx.get_node_attributes(G, 'pos')
         # plt.figure(figsize=(10, 8))
-        # nx.draw(G, pos, with_labels=True, node_size=3000, node_color='lightblue', font_size=10, font_weight='bold')
+        # nx.draw(G, pos, with_labels=False, node_size=10, node_color='blue', font_size=10, font_weight='bold')
         # plt.show()
 
         return G
@@ -135,6 +139,7 @@ class BangladeshModel(Model):
         generate the simulation model according to the csv file component information
 
         Warning: the labels are the same as the csv column labels
+
         """
 
         df = pd.read_csv(self.file_name)
@@ -149,7 +154,6 @@ class BangladeshModel(Model):
             if not df_objects_on_road.empty:
                 df_objects_all.append(df_objects_on_road)
         # a list of names of roads to be generated
-        # TODO You can also read in the road column to generate this list automatically
         roads = df['road'].unique()
 
         # Create a directed graph to represent the road network
@@ -162,8 +166,9 @@ class BangladeshModel(Model):
                 road_sink_id = road_sink_row['id']
 
                 if road_source_id != road_sink_id:
+                    # If source and sink are not the same, calculate the shortest path for this source/sink combination.
                     path_ids = nx.shortest_path(G, source=road_source_id, target=road_sink_id, weight = 'length')
-                    #path_ids = list(path_ids)
+                    # Place the path into the dictionary path_ids_dict
                     self.path_ids_dict[(road_source_id, road_sink_id)] = path_ids
 
         # print('path ids dict', self.path_ids_dict)
@@ -224,6 +229,7 @@ class BangladeshModel(Model):
     def get_random_route(self, source):
         """
         pick up a random route given an origin
+        get the shortest path for this source/sink combination out of path_ids_dict.
         """
         while True:
             # different source and sink
@@ -232,10 +238,15 @@ class BangladeshModel(Model):
                 break
         return self.path_ids_dict[source, sink]
 
-    # TODO
+
     def get_route(self, source):
+        """
+        This function gets the random route based on the function get_random_route.
+        We are not using the get_straight_route anymore.
+        """
         return self.get_random_route(source)
 
+    # This function get_straight_route is currently not used, we are using get_random_route.
     def get_straight_route(self, source):
         """
         pick up a straight route given an origin
