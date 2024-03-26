@@ -128,6 +128,8 @@ columns = ['road', 'road name2', 'model_type', 'condition', 'name', 'lat', 'lon'
 filtered_df = filtered_df.reindex(columns=columns)
 filtered_df = filtered_df.drop_duplicates(subset=['chainage'])
 filtered_df['model_type'] = 'intersection'
+filtered_df['length'] = 0.0
+
 
 #########
 ##STEP3##
@@ -159,6 +161,8 @@ for road in selected_roads:
     df_sourcesinks = pd.concat([df_sourcesinks, first_point, last_point], ignore_index=True)
 
 df_sourcesinks['model_type'] = 'sourcesink'
+df_sourcesinks['length'] = 0.0
+
 #print(df_sourcesinks)
 
 #########
@@ -323,7 +327,7 @@ for index, row in df_merge_final2.iterrows():
         continue
 
     # Calculate the length of the link
-    link_length = chainage - prev_chainage
+    link_length = (chainage - prev_chainage)*1000
 
     # Check if the current and previous objects are sourcesinks or intersections
     is_sourcesink = model_type == 'sourcesink'

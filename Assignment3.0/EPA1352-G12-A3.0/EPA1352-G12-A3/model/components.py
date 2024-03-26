@@ -301,6 +301,7 @@ class Vehicle(Agent):
 
         if distance_rest > 0:
             # go to the next object
+            # print("ENTERING DTN ==============================================, distance_rest:", distance_rest)
             self.drive_to_next(distance_rest)
         else:
             # remain on the same object
@@ -311,10 +312,13 @@ class Vehicle(Agent):
         vehicle shall move to the next object with the given distance
         """
 
+        # if self.location_index >= len(self.path_ids) - 1:
+        #     return
+
         self.location_index += 1
         next_id = self.path_ids[self.location_index]
         next_infra = self.model.schedule._agents[next_id]  # Access to protected member _agents
-
+        # print(next_infra.name, "instance of class", type(next_infra).__name__, "length is", next_infra.length)
         if isinstance(next_infra, Sink):
             # arrive at the sink
             self.arrive_at_next(next_infra, 0)
