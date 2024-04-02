@@ -84,8 +84,7 @@ combined_df = pd.concat(dfs, ignore_index=True)
 combined_df = combined_df.rename(columns={'LRP No':'LRP','road_number':'road'})
 
 # Merge the two dataframes on 'road' and 'LRP' with a left join
-merged_df_traffic = pd.merge(traffic, combined_df, on=['road', 'LRP'], how='left'))
-
+merged_df_traffic = pd.merge(traffic, combined_df, on=['road', 'LRP'], how='left')
 
 print(merged_df_traffic.head())
 
