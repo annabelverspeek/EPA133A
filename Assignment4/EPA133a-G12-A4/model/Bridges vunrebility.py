@@ -1,9 +1,9 @@
 import pandas as pd
 
-file1 = '../model/bridges.csv'
+file1 = '../data/BMM.csv'
 bridges = pd.read_csv(file)
 
-file2 = '../model/vulnerability_water_distance.xls'
+file2 = '../data/vulnerability_water_distance.xls'
 vulnerabilities = pd.read_excel(file2)
 
 
@@ -21,6 +21,6 @@ for index, row in bridges.iterrows():
         elif score > 0.55 and score <= 0.6:
             bridges.at[index, 'condition_water'] = 'D'
 
-bridges.to_csv('../model/bridges.csv', index=False)
+bridges.to_csv('../model/BMM.csv', index=False)
 
 
