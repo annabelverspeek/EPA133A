@@ -161,8 +161,8 @@ plt.legend()
 plt.gca().invert_yaxis()  # Invert y-axis to display the highest-ranking road at the top
 plt.show()
 
-#Saving the top100 dataframe for further analysis
-top_100_df['name'].to_csv('../data/processed/Criticality100.csv', index=False)
+#Saving the sorted_latlonload dataframe for further analysis
+sorted_latlonload['name'].to_csv('../data/processed/Criticality.csv', index=False)
 
 #Here we calculate the partial contributions to the total EVV of each vehicle, this gives insight as to what vehicles contribute most to the economic values of the roads.
 latlonload = latlonload.apply(pd.to_numeric, errors='coerce')
