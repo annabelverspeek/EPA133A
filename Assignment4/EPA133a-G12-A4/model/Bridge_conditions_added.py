@@ -242,4 +242,4 @@ gdf.plot(ax=ax, marker='o', markersize=3, column='Weighted_Sum', cmap=cmap, lege
 plt.title('Vulnerability of Road Segments')
 plt.show()
 
-#????
+#??????
