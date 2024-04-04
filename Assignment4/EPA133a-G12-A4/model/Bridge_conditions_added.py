@@ -241,5 +241,3 @@ waterways.plot(ax=ax, color='lightblue', linewidth=0.5)
 gdf.plot(ax=ax, marker='o', markersize=3, column='Weighted_Sum', cmap=cmap, legend=True, vmin=0, vmax=300)
 plt.title('Vulnerability of Road Segments')
 plt.show()
-
-#??????
