@@ -186,6 +186,8 @@ Shapefiles of roads and waterways are used for this part.
 sorted_final_df = final_df.sort_values('Weighted_Sum', ascending=False)
 
 top_100_df = sorted_final_df.head(100)
+top_100_df['name'].to_csv('../data/processed/Vulnerability100.csv', index=False)
+
 top_10_df = top_100_df.head(10)
 
 road_names_100 = top_100_df['name']
