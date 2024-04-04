@@ -73,5 +73,7 @@ traffic.drop('segment_number',
 traffic['Chainage'] = traffic['Chainage'].astype(float)
 traffic = traffic.sort_values(by=["road", "Chainage"])
 
+traffic['name'] = traffic['name'].str.replace("(Left)", "")
+
 traffic.to_csv('traffic.csv', index=False)
 
