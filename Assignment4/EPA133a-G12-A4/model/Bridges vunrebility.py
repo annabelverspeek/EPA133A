@@ -13,8 +13,6 @@ vulnerabilities = pd.read_csv(file2, delimiter =";")
 print('count of unique District in dataframe vulnerabilities is',vulnerabilities['District'].nunique())
 # print('vulnerabilities', vulnerabilities)
 
-bridges.drop(columns=['condition_water'], inplace=True)
-
 bridges['flood_risk'] = None
 
 for index, row in bridges.iterrows():
@@ -30,16 +28,16 @@ for index, row in bridges.iterrows():
         score = division_vulnerability['Vulnerability'].iloc[0]
         #print('score', score)
         if score >= 0.41 and score <= 0.45:
-            bridges.loc[index, 'flood_risk'] = 1
+            bridges.loc[index, 'flood_risk'] = 'A'
             #print('condition_water',bridges.loc[index, 'condition_water'])
         elif score > 0.45 and score <= 0.49:
-            bridges.loc[index, 'flood_risk'] = 2
+            bridges.loc[index, 'flood_risk'] = 'B'
             #print(bridges.loc[index, 'condition_water'])
         elif score > 0.49 and score <= 0.53:
-            bridges.loc[index, 'flood_risk'] = 3
+            bridges.loc[index, 'flood_risk'] = 'C'
             #print(bridges.loc[index, 'condition_water'])
         elif score > 0.53 and score <= 0.57:
-            bridges.loc[index, 'flood_risk'] = 4
+            bridges.loc[index, 'flood_risk'] = 'D'
             #print(bridges.loc[index, 'condition_water'])
     else: print('deze division',row['division'])
 
@@ -47,7 +45,7 @@ bridges.to_excel('../data/processed/BMMS_overview.xlsx', index=False)
 #printing column condition_water in dataframe bridges
     #print(bridges['condition_water'])
 
-# #printing the value counts of 1,2,3,4
+# #printing the value counts of A,B,C,D
 print(bridges['flood_risk'].value_counts())
 #
 # #printing the amount of none values

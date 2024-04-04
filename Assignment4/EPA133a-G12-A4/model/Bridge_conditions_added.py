@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import geopandas as gpd
+from matplotlib.colors import LinearSegmentedColormap
 
 ###############################
 ### Prepare both data files ###
@@ -23,8 +24,8 @@ bmms_df['chainage'] = pd.to_numeric(bmms_df['chainage'], errors='coerce')
 bmms_df['chainage'] = bmms_df['chainage'].astype(float)
 
 # Convert chainage columns in traffic DataFrame from string to float
-traffic_df['Chainage Start'] = traffic_df['Chainage Start'].astype(float)
-traffic_df['Chainage End'] = traffic_df['Chainage End'].astype(float)
+traffic_df['Chainage'] = traffic_df['Chainage Start'].astype(float)
+traffic_df['Chainag_end'] = traffic_df['Chainage_end'].astype(float)
 
 #######################################
 ### Prepare bridge condition counts ###
@@ -43,7 +44,7 @@ for index, bridge_row in bmms_df.iterrows():
     # Find the road segment where the bridge chainage falls within its range
     matching_segments = traffic_df[(traffic_df['road'] == bridge_road) &
                                    (traffic_df['Chainage Start'] <= bridge_chainage) &
-                                   (traffic_df['Chainage End'] >= bridge_chainage)]
+                                   (traffic_df['Chainage_end'] >= bridge_chainage)]
 
     # Increment the count of the bridge condition for each matching road segment
     for i, segment_row in matching_segments.iterrows():
@@ -90,7 +91,7 @@ for index, bridge_row in bmms_df.iterrows():
     # Find the road segment where the bridge chainage falls within its range
     matching_segments = traffic_df[(traffic_df['road'] == bridge_road) &
                                    (traffic_df['Chainage Start'] <= bridge_chainage) &
-                                   (traffic_df['Chainage End'] >= bridge_chainage)]
+                                   (traffic_df['Chainage_end'] >= bridge_chainage)]
 
     # Increment the count of the bridge condition for each matching road segment
     for i, segment_row in matching_segments.iterrows():
@@ -145,15 +146,15 @@ final_df.to_csv('bridge_condition_counts.csv', index=False)
 # Plot the 10 most critical road segments according to the weighted sum.
 
 # Sort the DataFrame based on 'Weighted_Sum' column in descending order
-sorted_merged_df = final_df.sort_values('Weighted_Sum', ascending=False)
+sorted_final_df = final_df.sort_values('Weighted_Sum', ascending=False)
 
-# Get the top 50 roads
-top_100_df = sorted_merged_df.head(100)
+# Get the top 100 roads
+top_100_df = sorted_final_df.head(100)
 
-# Get the top 10 roads within the top 50
+# Get the top 10 roads within the top 100
 top_10_df = top_100_df.head(10)
 
-# Extract road names and weighted sum values for plotting, for the top 10 and top 50
+# Extract road names and weighted sum values for plotting, for the top 10 and top 100
 road_names_100 = top_100_df['name']
 weighted_values_100 = top_100_df['Weighted_Sum']
 
@@ -187,6 +188,10 @@ plt.show()
 
 # Plot the vulnerability based on the condition of bridges and the flood risk of bridges spatially.
 
+# Load the shapefile of Bangladesh roads and waterways
+roads = gpd.read_file("osm/roads.shp")
+waterways = gpd.read_file("osm/waterways.shp")
+
 # Convert latitude and longitude columns to numeric types, handling errors
 final_df['Latitude Decimal'] = pd.to_numeric(final_df['Latitude Decimal'], errors='coerce')
 final_df['Longitude Decimal'] = pd.to_numeric(final_df['Longitude Decimal'], errors='coerce')
@@ -203,17 +208,12 @@ final_df = final_df[
 # Create a GeoDataFrame from the filtered latlonload DataFrame
 gdf = gpd.GeoDataFrame(final_df, geometry=gpd.points_from_xy(final_df['Longitude Decimal'], final_df['Latitude Decimal']))
 
-# Get the bounding box of the GeoDataFrame
-minx, miny, maxx, maxy = gdf.total_bounds
+# Define a colormap for the economic value of roads
+cmap = LinearSegmentedColormap.from_list('evv', ['#0066ff', '#ffffff', '#ff0000'])
 
-# Create the base map with the bounding box
-ax = plt.axes()
-ax.set_xlim(minx, maxx)
-ax.set_ylim(miny, maxy)
-
-# Plot the GeoDataFrame with EVV values
-gdf.plot(ax=ax, marker='o', markersize=5, column='Weighted_Sum', cmap='coolwarm', legend=True, vmin=0, vmax=800)
-
-# Add title and show plot
-plt.title('Vulnerability of Roads')
+# Plot the map of Bangladesh roads
+ax = roads.plot(color='white', edgecolor='black', figsize=(10, 6), linewidth=0.5)
+waterways.plot(ax=ax, color='lightblue', linewidth=0.5)
+gdf.plot(ax=ax, marker='o', markersize=3, column='Weighted_Sum', cmap=cmap, legend=True, vmin=0, vmax=300)
+plt.title('Vulnerability of Road Segments')
 plt.show()
