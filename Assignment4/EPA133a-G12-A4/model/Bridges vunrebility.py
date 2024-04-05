@@ -13,7 +13,6 @@ vulnerabilities = pd.read_csv(file2, delimiter =";")
 print('count of unique District in dataframe vulnerabilities is',vulnerabilities['District'].nunique())
 
 
-
 'Create a new column where we can store the vulnerabilities of the division' \
 'These chain vulnerabilities are determined from the Vulnerability and are divided into ABCD. \
 The higher the value the higher the vulnerability is the more vulnerable this division is. \
