@@ -103,8 +103,8 @@ latlonload.describe()
 # The rivers are used for sense of where the roads are as OSM and other ways did not give the desired backgrounds.
 # One point with lat/lon 0/0 was removed as this was cause the map to fail loading.
 
-roads = gpd.read_file("../osm/roads.shp")
-waterways = gpd.read_file("../osm/waterways.shp")
+roads = gpd.read_file("../../data/processed/osm/roads.shp")
+waterways = gpd.read_file("../../data/processed/osm/waterways.shp")
 
 latlonload['Latitude Decimal'] = pd.to_numeric(latlonload['Latitude Decimal'], errors='coerce')
 latlonload['Longitude Decimal'] = pd.to_numeric(latlonload['Longitude Decimal'], errors='coerce')

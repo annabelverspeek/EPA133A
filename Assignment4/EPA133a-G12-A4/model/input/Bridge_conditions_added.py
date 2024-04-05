@@ -221,8 +221,8 @@ plt.yticks([])
 plt.show()
 
 # Plot the vulnerability based on the condition of bridges and the flood risk of bridges spatially.
-roads = gpd.read_file("../osm/roads.shp")
-waterways = gpd.read_file("../osm/waterways.shp")
+roads = gpd.read_file("../../data/processed/osm/roads.shp")
+waterways = gpd.read_file("../../data/processed/osm/waterways.shp")
 
 final_df['Latitude Decimal'] = pd.to_numeric(final_df['Latitude Decimal'], errors='coerce')
 final_df['Longitude Decimal'] = pd.to_numeric(final_df['Longitude Decimal'], errors='coerce')

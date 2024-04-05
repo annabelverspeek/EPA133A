@@ -16,12 +16,17 @@ Assignment 4 is focused on identifying the most critical and vulnerable bridges 
 1) Find out what the economic criticality was of every road segment. 
 2) Find out the vulnerability of the bridges on every road segment for the conditions the bridges have.
 3) Find out the vulnerability of the bridges on every road segment for the risk of a flood happening at that road segment. 
+
 ## How to Use
 Per folder, there is a description how to use the files:
+
 ### data  
 In the processed data, the data on the bridges can be found: *'BMMS_overview'*
 In the folder of the raw data, the RMMS database can be found. For the data on traffic all files are read that end with '.traffic.htm'. For the location of the road segments, data is used from the files ending with '.lrps.htm'.
-For the vulnerability of the bridges, the *'vulnerability_water_distance'* files are used that can be found in the processed data folder. 
+For the vulnerability of the bridges, the *'vulnerability_water_distance'* files are used that can be found in the processed data folder.
+
+#### osm
+The osm data is used to geographically visualize the vulnerability of the bridges and the criticality of the roads.
 
 ### model
 The model folder contains of 4 different folders, being the input folder, osm folder and the output folder.
@@ -36,12 +41,6 @@ The input folder contains all the python files that have been used to conduct th
 
 #### output 
 The order of Python files mentioned above is also the order to run the files. All outputs will be found in the output folder
-
-#### osm
-The osm data is used to geographically visualize the vulnerability of the bridges and the criticality of the roads.
-
-### notebook 
-In the notebook folder one Jupyter file can be found that was used to do the first analyses. In the outcomes, this file is no longer used.
 
 ### report 
 In the report folder, the final report can be found on our analysis. The visualized outcomes of the analysis can be found in report/figures.
